@@ -19,7 +19,7 @@ class List
     
 public:
     template< class Func >
-    void for_each_value( Func const& f ) const
+    void for_each_value( const Func& f ) const
     {
         for( Type_<const Node>* p = &pi; p != nullptr; p = p->pointer_to_next ) {
             f( p->value );
