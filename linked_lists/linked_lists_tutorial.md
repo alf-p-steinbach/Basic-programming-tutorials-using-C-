@@ -2,7 +2,9 @@
 
 # A biggish C++ linked lists tutorial
 
-Heads up:
+*This tutorial is in mid-writing, under construction. The programming language in the examples is C++, not C as indicated by the large Github-added header above. Unfortunately, three suggested ways to get rid of it did not work.*
+
+When you now learn about how to implement linked lists, remember that
 
 * The C++ standard library has two linked list class templates, `std::list` and `std::forward_list` — there’s rarely any need to reinvent those wheels.
 * And in most cases a `std::vector` is simpler, safer and more efficient than a linked list, even with a perfect list implementation, so the two mentioned classes are among the least used in the library.
