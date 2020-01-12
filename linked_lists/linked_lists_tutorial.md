@@ -26,7 +26,7 @@ It’s mostly about *understanding* things, which is necessary for analysis and 
 
 - [1. What is a linked list?](#1-what-is-a-linked-list)
 - [2. Use of a singly linked list type, `std::forward_list`.](#2-use-of-a-singly-linked-list-type-stdforward_list)
-  - [2.1. Iterate through a list.](#21-iterate-through-a-list)
+  - [2.1. Iterate with standard iterators.](#21-iterate-with-standard-iterators)
   - [2.2 Detect the end of the list in an iterator based traversal.](#22-detect-the-end-of-the-list-in-an-iterator-based-traversal)
   - [2.3 Detect the end of the list in a range based `for` traversal.](#23-detect-the-end-of-the-list-in-a-range-based-for-traversal)
   - [2.4 Insert and remove efficiently at the start of a list.](#24-insert-and-remove-efficiently-at-the-start-of-a-list)
