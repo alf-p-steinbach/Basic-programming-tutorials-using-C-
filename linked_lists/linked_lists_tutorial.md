@@ -233,11 +233,11 @@ Possibilities include:
 * Generate the output fully or partially in e.g. a `string`, and adjust it after the loop.  
   This is like copying the values, only worse.
 * Use a special **sentinel value** (of your choosing) at the end of the list.  
-  The sentinel value must then be regarded as not-really-there by all list processing.
+  This is just a possibility for the *general* problem of detecting the list end, e.g. for appending a node. It’s a technique worth knowing about but I see no way that it can help with the problem at hand.
 * Let each loop iteration output the *previous* value. Output the very last value after the loop.
 * Count the nodes first, and then maintain a running count during the traversal.
 
-The first and second possibilities, copying of values or text, are kludgy and involve inefficient dynamic memory allocation, even if those allocations happen automatically behind the scenes. The third possibility, a sentinel value, has the drawback that it’s quite intrusive, affecting all list handling. The fourth possibility of one-iteration-deferred output is a bit complex, e.g. in the loop one must take care to not output the first value in the first iteration, and more.
+The first and second possibilities, copying of values or text, are kludgy and involve inefficient dynamic memory allocation, even if those allocations happen automatically behind the scenes. The third possibility, a sentinel value, is just not helpful for producing the “and” at the right time. The fourth possibility of one-iteration-deferred output is a bit complex, e.g. in the loop one must take care to not output the first value in the first iteration, and more.
 
 So it’s natural to just count the nodes, and the standard library’s `distance` function can do that — since for a pure *forward iterator* it just applies `++` repeatedly to its first iterator until it reaches the second:
 
