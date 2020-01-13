@@ -556,6 +556,7 @@ A complete program using the trailing link technique:
 *<small>std_forward_list/insert_sorted.using_trailing_link.cpp</small>*
 ~~~cpp
 #include <forward_list>         // std::forward_list
+#include <initializer_list>     // Required for deduced type of brace initializer.
 #include <iostream>
 using std::cout, std::endl, std::forward_list;
 
@@ -1140,22 +1141,18 @@ Removing...
 
 The naming here may at first seem odd, `link_in_before` versus (which does just about the same) `forward_list::insert_after`. That's because `insert_after` reads as inserting *after* a specified node, while `link_in_before` reads as linking a new node in *before* the node that a specified *next* field points to. The naming is all about how the calling code reads, and e.g. the call in this program, `link_in_before(head)`, is self-explanatory.
 
-### 3.4 Do something before the end in a pointer based traversal (that’s easy).
+### 3.4 Keep a pointer to last node to append to a list in constant time.
 
-From the `forward_list` discussion recall the “do something before the end” problem of presenting output like
+As with the `forward_list`, to append in a reasonably efficient way, namely O(1) time, you can keep a link to the last node.
 
-~~~txt
-3.14, 2.72, 0, 42 and -1.
-~~~
+With a pointer based list that link is naturally a pointer.
 
-With iterators that give access only to the values, detecting the end of the list to output that “and” was difficult. To make that logic reasonably simple we had to use the iterator-to-pseudo-node `.before_begin()`. This supported no-special-case code that looked forward in the list 👀.
+For a list abstraction one may choose to maintain a last node pointer along with the node list. `forward_list` doesn’t, because it’s easy to add on top but impossible to remove, and also because it would constrain the operation set. Without any abstraction one will typically just temporarily maintain a last node pointer during a sequence of append operations, e.g.
 
-But with pointers to nodes the last node’s *next* pointer can be seen and is a `nullptr`, so it’s easy to detect the last node *without looking forward*:
-
-*<small>pointer_list/comma_separated_values_of_a_pointer_list.cpp</small>*
+*<small>pointer_list/five_numbers_list.hpp</small>*
 ~~~cpp
-#include <iostream>
-using std::cout, std::endl;
+#pragma once
+#include <initializer_list>         // Required for deduced type of brace initializer.
 
 template< class T > using Type_ = T;
 
@@ -1186,7 +1183,7 @@ struct Node
     }
 };
 
-auto list_copy_of_the_five_important_numbers()
+inline auto list_copy_of_the_five_important_numbers()
     -> Node*
 {
     Node*   head    = nullptr;
@@ -1202,6 +1199,62 @@ auto list_copy_of_the_five_important_numbers()
     }
     return head;
 }
+~~~
+
+*<small>pointer_list/five_numbers_as_pointer_list.cpp</small>*
+~~~cpp
+#include "five_numbers_list.hpp"
+
+#include <iostream>
+using std::cout, std::endl;
+
+auto main()
+    -> int
+{
+    const Type_<Node*> head = list_copy_of_the_five_important_numbers();
+
+    for( Node* p = head; p != nullptr; p = p->next ) {
+        cout << p->value << endl;
+    }
+
+    delete_list( head );
+}
+~~~
+
+Output:
+
+~~~txt
+3.14
+2.72
+0
+42
+-1
+~~~
+
+In this program for an ordinary desktop system or better it’s not technically necessary to `delete` all the nodes at the end. The operating system, e.g. Mac OS, Linux or Windows, will reclaim the memory automatically when the process terminates. It will also close any open file handles and will in general do a fair general clean-up, and as long as that automatic clean-up covers what the program needs clean-up for (e.g. it doesn't cover removing temporary files) one can technically just rely on it.
+
+However, when you debug a program or run some other diagnostic tool such as Valgrind, the tool may complain about memory leaks if the program doesn’t itself clean up everything.
+
+And then you might waste time chasing a non-existing bug, so, better clean up; hence the `delete_list` function here.
+
+### 3.5 Do something before the end in a pointer based traversal (that’s easy).
+
+From the `forward_list` discussion recall the “do something before the end” problem of presenting output like
+
+~~~txt
+3.14, 2.72, 0, 42 and -1.
+~~~
+
+With iterators that give access only to the values, detecting the end of the list to output that “and” was difficult. To make that logic reasonably simple we had to use the iterator-to-pseudo-node `.before_begin()`. This supported no-special-case code that looked forward in the list 👀.
+
+But with pointers to nodes the last node’s *next* pointer can be seen and is a `nullptr`, so it’s easy to detect the last node *without looking forward*:
+
+*<small>pointer_list/comma_separated_values_of_a_pointer_list.cpp</small>*
+~~~cpp
+#include "five_numbers_list.hpp"
+
+#include <iostream>
+using std::cout, std::endl;
 
 auto main()
     -> int
@@ -1222,11 +1275,8 @@ auto main()
 }
 ~~~
 
-In this program for an ordinary desktop system or better it’s not technically necessary to `delete` all the nodes at the end. The operating system, e.g. Mac OS, Linux or Windows, will reclaim the memory automatically when the process terminates. It will also close any open file handles and will in general do a fair general clean-up, and as long as that automatic clean-up covers what the program needs clean-up for (e.g. it doesn't cover removing temporary files) one can technically just rely on it.
 
-However, when you debug a program or run some other diagnostic tool such as Valgrind, the tool may complain about memory leaks if the program doesn’t itself clean up everything.
-
-And then you might waste time chasing a non-existing bug, so, better clean up; hence the `delete_list` function here.
+### 3.6 Keep a pointer based list sorted by inserting in sorted position.
 
 
 

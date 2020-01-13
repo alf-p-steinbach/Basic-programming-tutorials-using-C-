@@ -1,4 +1,5 @@
 #include <forward_list>         // std::forward_list
+#include <initializer_list>     // Required for deduced type of brace initializer.
 #include <iostream>
 using std::cout, std::endl, std::forward_list;
 

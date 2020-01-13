@@ -1,5 +1,6 @@
 #include <exception>            // std::terminate
 #include <forward_list>         // std::forward_list
+#include <initializer_list>     // Required for deduced type of brace initializer.
 #include <iterator>             // std::next
 #include <iostream>
 using std::cout, std::endl, std::forward_list, std::next, std::terminate;
