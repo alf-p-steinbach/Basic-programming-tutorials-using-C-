@@ -569,11 +569,8 @@ auto sorted_insert_position_for( const double value, forward_list<double>& list 
 {
     Iterator trailing = list.before_begin();
     for(    Iterator it = list.begin();
-            it != list.end();
+            it != list.end() and *it < value;
             ++it ) {
-        if( *it >= value ) {
-            break;
-        }
         trailing = it;
     }
     return trailing;
