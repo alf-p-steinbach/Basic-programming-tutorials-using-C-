@@ -39,7 +39,7 @@ It’s mostly about *understanding* things, which is necessary for analysis and 
   - [3.3 Define functions to link in and unlink nodes.](#33-define-functions-to-link-in-and-unlink-nodes)
   - [3.4 Keep a pointer to last node to append to a list in constant time.](#34-keep-a-pointer-to-last-node-to-append-to-a-list-in-constant-time)
   - [3.5 Do something before the end in a pointer based traversal (that’s easy).](#35-do-something-before-the-end-in-a-pointer-based-traversal-thats-easy)
-  - [3.6 Keep a pointer based list sorted by inserting in sorted position.](#36-keep-a-pointer-based-list-sorted-by-inserting-in-sorted-position)
+  - [3.6 Insert in in sorted position in a pointer based list.](#36-insert-in-in-sorted-position-in-a-pointer-based-list)
 - [asdasd](#asdasd)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -1285,7 +1285,7 @@ auto main()
 ~~~
 
 
-### 3.6 Keep a pointer based list sorted by inserting in sorted position.
+### 3.6 Insert in in sorted position in a pointer based list.
 
 For `std::forward_list` it was easy to choose a return type for the function to find a sorted insertion position. It’s a design with only one choice for position id’s, namely iterators. One might therefore think that a corresponding function for a pointer based list should return a pointer to a node.
 
