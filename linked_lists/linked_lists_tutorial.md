@@ -37,7 +37,9 @@ It’s mostly about *understanding* things, which is necessary for analysis and 
   - [3.1. Make pointers and referents `const` in a good way.](#31-make-pointers-and-referents-const-in-a-good-way)
   - [3.2 Use `new` and `delete` expressions to allocate and deallocate nodes.](#32-use-new-and-delete-expressions-to-allocate-and-deallocate-nodes)
   - [3.3 Define functions to link in and unlink nodes.](#33-define-functions-to-link-in-and-unlink-nodes)
-  - [3.4 Do something before the end in a pointer based traversal (that’s easy).](#34-do-something-before-the-end-in-a-pointer-based-traversal-thats-easy)
+  - [3.4 Keep a pointer to last node to append to a list in constant time.](#34-keep-a-pointer-to-last-node-to-append-to-a-list-in-constant-time)
+  - [3.5 Do something before the end in a pointer based traversal (that’s easy).](#35-do-something-before-the-end-in-a-pointer-based-traversal-thats-easy)
+  - [3.6 Keep a pointer based list sorted by inserting in sorted position.](#36-keep-a-pointer-based-list-sorted-by-inserting-in-sorted-position)
 - [asdasd](#asdasd)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
