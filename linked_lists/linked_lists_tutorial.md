@@ -1346,6 +1346,9 @@ Output:
 -1 0 2.72 3.14 42
 ~~~
 
+It is perhaps worth noting that in C, which doesn’t have references, this technique would be expressed with a pointer to pointer instead of reference to pointer.
+
+And this is one case where such a pointer to pointer is a pointer that refers to a single pointer object, and not to an item in an array of pointers such as the `argv` argument of `main`.
 
 
 
