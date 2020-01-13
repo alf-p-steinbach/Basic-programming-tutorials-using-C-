@@ -37,6 +37,7 @@ It’s mostly about *understanding* things, which is necessary for analysis and 
   - [3.1. Make pointers and referents `const` in a good way.](#31-make-pointers-and-referents-const-in-a-good-way)
   - [3.2 Use `new` and `delete` expressions to allocate and deallocate nodes.](#32-use-new-and-delete-expressions-to-allocate-and-deallocate-nodes)
   - [3.3 Define functions to link in and unlink nodes.](#33-define-functions-to-link-in-and-unlink-nodes)
+  - [3.4 Do something before the end in a pointer based traversal (that’s easy).](#34-do-something-before-the-end-in-a-pointer-based-traversal-thats-easy)
 - [asdasd](#asdasd)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -1139,6 +1140,93 @@ Removing...
 
 The naming here may at first seem odd, `link_in_before` versus (which does just about the same) `forward_list::insert_after`. That's because `insert_after` reads as inserting *after* a specified node, while `link_in_before` reads as linking a new node in *before* the node that a specified *next* field points to. The naming is all about how the calling code reads, and e.g. the call in this program, `link_in_before(head)`, is self-explanatory.
 
+### 3.4 Do something before the end in a pointer based traversal (that’s easy).
+
+From the `forward_list` discussion recall the “do something before the end” problem of presenting output like
+
+~~~txt
+3.14, 2.72, 0, 42 and -1.
+~~~
+
+With iterators that give access only to the values, detecting the end of the list to output that “and” was difficult. To make that logic reasonably simple we had to use the iterator-to-pseudo-node `.before_begin()`. This supported no-special-case code that looked forward in the list 👀.
+
+But with pointers to nodes the last node’s *next* pointer can be seen and is a `nullptr`, so it’s easy to detect the last node *without looking forward*:
+
+*<small>pointer_list/comma_separated_values_of_a_pointer_list.cpp</small>*
+~~~cpp
+#include <iostream>
+using std::cout, std::endl;
+
+template< class T > using Type_ = T;
+
+struct Node
+{
+    Node*   next;
+    double  value;
+
+    void link_in_before( Node*& a_next_field )
+    {
+        next = a_next_field;
+        a_next_field = this;
+    }
+    
+    friend auto unlinked( Node*& a_next_field )
+        -> Node*
+    {
+        const auto result = a_next_field;
+        a_next_field = result->next;
+        return result;
+    }
+    
+    friend void delete_list( Node* head )
+    {
+        while( head != nullptr ) {
+            delete unlinked( head );
+        }
+    }
+};
+
+auto list_copy_of_the_five_important_numbers()
+    -> Node*
+{
+    Node*   head    = nullptr;
+    Node*   last    = nullptr;
+    for( const double v: {3.14, 2.72, 0., 42., -1.} ) {
+        const Type_<Node*> new_node = new Node{ nullptr, v };
+        if( head == nullptr ) {
+            head = new_node;
+        } else {
+            new_node->link_in_before( last->next );
+        }
+        last = new_node;
+    }
+    return head;
+}
+
+auto main()
+    -> int
+{
+    const Type_<Node*> head = list_copy_of_the_five_important_numbers();
+
+    for( Node* p = head; p != nullptr; p = p->next ) {
+        if( p != head ) {
+            // Not at the first node, so add text to separate the previous value.
+            const bool is_at_last_node = (p->next == nullptr);
+            cout << (is_at_last_node? " and " : ", ");
+        }
+        cout << p->value;
+    }
+    cout << "." << endl;
+
+    delete_list( head );
+}
+~~~
+
+In this program for an ordinary desktop system or better it’s not technically necessary to `delete` all the nodes at the end. The operating system, e.g. Mac OS, Linux or Windows, will reclaim the memory automatically when the process terminates. It will also close any open file handles and will in general do a fair general clean-up, and as long as that automatic clean-up covers what the program needs clean-up for (e.g. it doesn't cover removing temporary files) one can technically just rely on it.
+
+However, when you debug a program or run some other diagnostic tool such as Valgrind, the tool may complain about memory leaks if the program doesn’t itself clean up everything.
+
+And then you might waste time chasing a non-existing bug, so, better clean up; hence the `delete_list` function here.
 
 
 
