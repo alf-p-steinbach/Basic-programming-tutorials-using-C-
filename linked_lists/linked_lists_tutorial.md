@@ -1287,9 +1287,9 @@ auto main()
 
 ### 3.6 Keep a pointer based list sorted by inserting in sorted position.
 
-For `std::forward_list` it was easy to choose a return type for the function to find a sorted insertion position. It’s a design with only choice, namely iterators. Likewise one might think that a corresponding function for a pointer based list should return a pointer to a node.
+For `std::forward_list` it was easy to choose a return type for the function to find a sorted insertion position. It’s a design with only one choice for position id’s, namely iterators. One might therefore think that a corresponding function for a pointer based list should return a pointer to a node.
 
-After all, pointers are like iterators?
+After all, pointers are what corresponds to the iterators?
 
 But with a list with *n* nodes there are *n* + 1 possible insert positions, and only *n* possible pointer to node values.
 
