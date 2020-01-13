@@ -839,15 +839,17 @@ My preferred notation is **west `const`**, with the `const` always to the left o
 
 This notation is possible because C++ supports it for the leftmost type in a declaration, *as a special case*. For example, the declaration `char const* p;` can be written as `const char* p;`. Similarly, `Node const* p` in the above code can be written as `const Node* p`.
 
-To be able to use west `const` for any declaration without naming parts of the declaration, you can just define a single line of support,
+You can’t rewrite something like something like `char const* const s = "Hi!";`  as a west `const` declaration like `const (const char*) s = "Hi!";`, because C++ doesn’t support parentheses in type expressions. The only built-in support for general substitution in type expressions is to name the parts with `typedef` or `using`. But to be able to use west `const` for any declaration without naming parts of the declaration, you can define a single line of support,
 
 ~~~cpp
 template< class T > using Type_ = T;
 ~~~
 
-… which supports substitution in type expressions. For example, something like `char const* const s = "Hi!";` can then be written in west `const` style as `const Type_<const char*> s = "Hi!";`. And as an added bonus declarations where the language’s special case rule allows west `const` already, like the declaration `const Node* p`, can then be written slightly more clearly like `Type_<const Node>* p` where the `*` more *clearly* applies to the whole `Type_<const Node>`.
+… where then `Type_<`*some-type-expression*`>` is the same as, if C++ had allowed parentheses, `(`*some-type-expression*`)`.
 
-As far as I know this support was first proposed by Johannes “litb” Schaub.
+For example, something like `char const* const s = "Hi!";` can then be written in west `const` style as `const Type_<const char*> s = "Hi!";`. And as an added bonus declarations where the language’s special case rule allows west `const` already, like the declaration `const Node* p`, can then be written like `Type_<const Node>* p` where it’s slightly more clear that `p` itself isn’t `const` (because the `*` more clearly applies to the whole `Type_<const Node>`). However, I generally don’t do that because to people who generally use west `const`, type expressions like `const Node*` are clear enough already — much like the meaning of `double` as a floating point number is clear to those who are *familiar* with it.
+
+As far as I know the `Type_` support, modulo the name, was first proposed by Johannes “litb” Schaub.
 
 The type substitution support is not technically required to express this section’s example program with west `const`, but applying it for clarity it can go like this:
 
