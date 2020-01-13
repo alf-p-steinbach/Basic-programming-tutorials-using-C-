@@ -1,7 +1,7 @@
+#include "../Type_.hpp"
+
 #include <iostream>
 using std::cout, std::endl;
-
-template< class T > using Type_ = T;
 
 struct Node
 {

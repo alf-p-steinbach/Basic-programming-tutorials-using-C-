@@ -1,7 +1,8 @@
+#include "../Type_.hpp"
+
 #include <iostream>
 using std::clog, std::endl;
 
-template< class T > using Type_ = T;
 void trace( const Type_<const char*> s ) { clog << s << endl; }
 
 struct Noisy_object

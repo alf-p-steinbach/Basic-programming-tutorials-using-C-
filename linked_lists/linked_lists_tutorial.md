@@ -851,12 +851,19 @@ As far as I know the `Type_` support, modulo the name, was first proposed by Joh
 
 The type substitution support is not technically required to express this section’s example program with west `const`, but applying it for clarity it can go like this:
 
+*<small>Type_.hpp</small>*
+~~~cpp
+#pragma once
+template< class T > using Type_ = T;
+~~~
+
+
 *<small>pointer_list/concrete_pointer_list.west_const.mutable_nodes_hidden_via_callback.cpp</small>*
 ~~~cpp
+#include "../Type_.hpp"
+
 #include <iostream>
 using std::cout, std::endl;
-
-template< class T > using Type_ = T;
 
 struct Node
 {
@@ -904,10 +911,11 @@ Example showing that an object dynamically allocated by one function can be deal
 
 *<small>pointer_list/new_and_delete.cpp</small>*
 ~~~cpp
+#include "../Type_.hpp"
+
 #include <iostream>
 using std::clog, std::endl;
 
-template< class T > using Type_ = T;
 void trace( const Type_<const char*> s ) { clog << s << endl; }
 
 struct Noisy_object
@@ -1000,10 +1008,10 @@ Removing the head node is just opposite, so:
 
 *<small>pointer_list/insert_and_remove_numbers.in_pointer_list.cpp</small>*
 ~~~cpp
+#include "../Type_.hpp"
+
 #include <iostream>
 using std::cout, std::endl;
-
-template< class T > using Type_ = T;
 
 struct Node
 {
@@ -1143,14 +1151,11 @@ As with the `forward_list`, to append in a reasonably efficient way, namely O(1)
 
 With a pointer based list that link is naturally a pointer.
 
-For a list abstraction one may choose to maintain a last node pointer along with the node list. `forward_list` doesn’t, because it’s easy to add on top but impossible to remove, and also because it would constrain the operation set. Without any abstraction one will typically just temporarily maintain a last node pointer during a sequence of append operations, e.g.
+For a list abstraction one may choose to maintain a last node pointer along with the node list. `forward_list` doesn’t, because it’s easy to add on top but impossible to remove, and also because it would constrain the operation set. Without any abstraction one will typically just temporarily maintain a last node pointer during a sequence of append operations.
 
-*<small>pointer_list/five_numbers_list.hpp</small>*
+*<small>pointer_list/Node.hpp</small>*
 ~~~cpp
 #pragma once
-#include <initializer_list>         // Required for deduced type of brace initializer.
-
-template< class T > using Type_ = T;
 
 struct Node
 {
@@ -1178,6 +1183,14 @@ struct Node
         }
     }
 };
+~~~
+
+*<small>pointer_list/list_copy_of_the_five_important_numbers.hpp</small>*
+~~~cpp
+#pragma once
+#include "Node.hpp"
+#include "../Type_.hpp"
+#include <initializer_list>         // Required for deduced type of brace initializer.
 
 inline auto list_copy_of_the_five_important_numbers()
     -> Node*
@@ -1199,7 +1212,7 @@ inline auto list_copy_of_the_five_important_numbers()
 
 *<small>pointer_list/five_numbers_as_pointer_list.cpp</small>*
 ~~~cpp
-#include "five_numbers_list.hpp"
+#include "list_copy_of_the_five_important_numbers.hpp"
 
 #include <iostream>
 using std::cout, std::endl;
@@ -1247,7 +1260,7 @@ But with pointers to nodes the last node’s *next* pointer can be seen and is a
 
 *<small>pointer_list/comma_separated_values_of_a_pointer_list.cpp</small>*
 ~~~cpp
-#include "five_numbers_list.hpp"
+#include "list_copy_of_the_five_important_numbers.hpp"
 
 #include <iostream>
 using std::cout, std::endl;
@@ -1273,6 +1286,68 @@ auto main()
 
 
 ### 3.6 Keep a pointer based list sorted by inserting in sorted position.
+
+For `std::forward_list` it was easy to choose a return type for the function to find a sorted insertion position. It’s a design with only choice, namely iterators. Likewise one might think that a corresponding function for a pointer based list should return a pointer to a node.
+
+After all, pointers are like iterators?
+
+But with a list with *n* nodes there are *n* + 1 possible insert positions, and only *n* possible pointer to node values.
+
+The function *could* return a *nullptr* to signal insertion at the front, or alternatively at the end, but that would complicate the calling code.
+
+One neat alternative is to instead return a reference to the *next* field that the calling code needs to modify, where the *head* pointer is regarded as a *next* field (this brings the number of *next* fields up to *n* + 1, just sufficient!):
+
+*<small>pointer_list/comma_separated_values_of_a_pointer_list.cpp</small>*
+~~~cpp
+#include "Node.hpp"
+
+#include <initializer_list>     // Required for deduced type of brace initializer.
+#include <iostream>
+using std::cout, std::endl;
+
+auto next_field_for_sorted_insertion_of( const double new_value, Node*& list_head )
+    -> Node*&
+{
+    Node* trailing = nullptr;
+    for(    Node* p = list_head; 
+            p != nullptr and p->value < new_value;
+            p = p->next ) {
+        trailing = p;
+    }
+    return (trailing == nullptr? list_head : trailing->next);
+}
+
+auto main()
+    -> int
+{
+    const auto data = {3.14, 2.72, 0.0, 42.0, -1.0};
+    Node* head = nullptr;
+
+    // Insert the data sorted.
+    for( const double v: data ) {
+        Node*& next = next_field_for_sorted_insertion_of( v, head );
+        (new Node{ nullptr, v})->link_in_before( next );
+    }
+
+    // Display the list.
+    for( Node*p = head; p != nullptr; p = p->next ) {
+        cout << p->value << " ";
+    }
+    cout << endl;
+
+    // Clean up, just to be nice.
+    delete_list( head );
+}
+~~~
+
+Output:
+
+~~~txt
+-1 0 2.72 3.14 42
+~~~
+
+
+
 
 
 
