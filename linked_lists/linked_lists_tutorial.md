@@ -1293,7 +1293,7 @@ After all, pointers are what corresponds to the iterators?
 
 But with a list with *n* nodes there are *n* + 1 possible insert positions, and only *n* possible pointer to node values.
 
-The function *could* return a *nullptr* to signal insertion at the front, or alternatively at the end, but that would complicate the calling code.
+The function *could* return a *nullptr* to signal insertion at the front, but that would complicate the calling code.
 
 One neat alternative is to instead return a reference to the *next* field that the calling code needs to modify, where the *head* pointer is regarded as a *next* field (this brings the number of *next* fields up to *n* + 1, just sufficient!):
 
