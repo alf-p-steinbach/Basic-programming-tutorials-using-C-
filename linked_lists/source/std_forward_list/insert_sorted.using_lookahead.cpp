@@ -24,7 +24,7 @@ auto sorted_insert_position_for( const double value, forward_list<double>& list 
 auto main()
     -> int
 {
-    const auto data = {3.14, 2.72, 0.0, 42.0, -1.0};
+    const auto data = {3.14, 2.72, 0., 42., -1.};
     forward_list<double> list;
 
     for( const double v: data ) {
