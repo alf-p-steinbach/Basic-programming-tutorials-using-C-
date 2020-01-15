@@ -1293,7 +1293,7 @@ After all, pointers are what corresponds to the iterators?
 
 But with a list with *n* nodes there are *n* + 1 possible insert positions, and only *n* possible pointer to node values.
 
-The function *could* return a *nullptr* to signal insertion at the front, but that would complicate the calling code.
+The function *could* return a `nullptr` to signal insertion at the front, but that would complicate the calling code.
 
 One neat alternative is to instead return a reference to the *next* field that the calling code needs to modify, where the *head* pointer is regarded as a *next* field (this brings the number of *next* fields up to *n* + 1, just sufficient!):
 
@@ -1349,6 +1349,94 @@ Output:
 It is perhaps worth noting that in C, which doesn’t have references, this technique would be expressed with a pointer to pointer instead of reference to pointer.
 
 And this is one case where such a pointer to pointer is a pointer that refers to a single pointer object, and not to an item in an array of pointers such as the `argv` argument of `main`.
+
+
+### 3.7 Find and remove nodes in a pointer list.
+
+As with sorted insertion, when you want to remove a node with a given value — or maybe all nodes with a given value, whatever — then a function to find the position of the node to remove is most convenient to use if it returns a reference to the previous node’s *next*
+ field.
+
+Complication: for a sorted insertion an insertion point will always be found and returned, but for a removal the search function may not always find a node to remove. Maybe the list has no node with the given value, or whatever criterion one uses. So this is a function that at least conceptually, *usually* will return a reference to a *next* field, but that *sometimes* must instead indicate “not found!”.
+
+*A search function for node removal is not the same as a search function for sorted insertion.*
+
+Possible solutions include, in the order pretty stupid, then unsafe but simple, then safer but inconvenient, then safe but verbose and inefficient, and finally safe and efficient but more complex:
+
+* Since the found node will be removed, just create a node if none is found.
+* Let the return type be pointer to *next* field instead of *next* field reference, and return a `nullptr` if no node is found.
+* Use a by-reference parameter (logically an out-parameter) that only will be set to pointer to *next* field if a node is found, and let the function result type be `bool` with `true` returned for “found”, and `false` for “not found”.
+* Throw an exception if no node is found.
+* Return a `std::optional` “value-or-nothing” wrapper.
+
+---
+
+The first possibility, of if necessary creating a node to remove, fails to support code that tries to remove *all* nodes with a given value, unless some indication of “faux node” is provided for the automatically added node. Perhaps the created node can be given a special value, or perhaps the function can set a flag somewhere, which would be similar to machine code condition codes. But no matter how this is solved this approach adds both complexity and inefficiency.
+
+---
+
+The second possibility, pointer to *next* field,
+
+~~~cpp
+template< class Func >
+auto next_field_pointing_to_node( const Func& has_desired_property, Node*& head )
+    -> Node**           // Pointer to next-field
+{
+    Node* trailing = nullptr;
+    for(    Node* p = head;
+            p != nullptr;
+            p = p->next ) {
+        if( has_desired_property( p->value ) ) {
+            return (trailing == nullptr? &head : &trailing->next);
+        }
+        trailing = p;
+    }
+    return nullptr;
+}
+~~~
+
+… requires the calling code to check for `nullptr` before using the function result, or else very undesired Undefined Behavior will ensue:
+
+~~~cpp
+    const auto with_value_7 = [](double x) -> bool { return x == 7; };
+    delete unlinked( *next_field_pointing_to_node( with_value_7, head ) );
+~~~
+
+If there is no node with value 7 then `next_field_pointing_to_node` will return a `nullptr`, and with one exception dereferencing a `nullptr` is Undefined Behavior. The exception is inside a `typeid` expression. Typically the effect of the above code, for the case of no value 7, is that the program is terminated, with or without an alarming diagnostic. This is called a **crash**. Alternatively the program may **hang**, or it may just continue executing, with some arbitrary result.
+
+Correct code will use e.g. an `if` or `while` to check the returned pointer, like this:
+
+~~~cpp
+    // Delete all nodes that are not 42, in a simple but O(n^2) way.
+    const auto with_not_42 = [](double x) -> bool { return x != 42; };
+    while( Node** pp_doomed = next_field_pointing_to_node( with_not_42, head ) ) {
+        delete unlinked( *pp_doomed );
+    }
+~~~
+
+For a short list this simple code is efficient enough, and therefore preferable.
+
+Simple is preferable because it’s less likely to have bugs, and less likely to waste the time of someone hunting for bugs.
+
+For a list that’s long enough the O(*n*²) behavior will however likely become unacceptable. This behavior is due to O(*n*) repeats of O(*n*) searching. One fix is to start each successive search at the node after the one that was removed, i.e. with the *next* field that was used to remove that node and which now points to the next node:
+
+~~~cpp
+    // Delete all nodes that are not 42, in a way that's O(n) efficient for a large list.
+    const auto not_42 = [](double x) -> bool { return x != 42; };
+    Node** pp_sublist_head = &head;
+    while( Node** pp_doomed = next_field_pointing_to_node( not_42, *pp_sublist_head ) ) {
+        delete unlinked( *pp_doomed );
+        pp_sublist_head = pp_doomed;    // Search only in the part of the list after this.
+    }
+~~~
+
+Since the searching now only goes forward in the list it considers each node once, so the total time for all the searches is known to be O(*n*).
+
+
+
+asdasd
+
+
+As of C++17 `std::optional` can not directly wrap references, but one can use a `std::reference_wrapper` as the wrapped value.
 
 
 
