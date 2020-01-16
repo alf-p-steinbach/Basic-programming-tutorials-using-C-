@@ -1495,7 +1495,7 @@ However, in order to remove multiple nodes O(*n*)-efficiently such a variable is
     }
 ~~~
 
-This approach/design might be described as *modification based*, as opposed to the *expression based* user code that returning a pointer as function result, allows. The standard library is for the most part a modification based design, which might indicate that modification based is good. However, that has to do with history. With C++98 and C++03 efficient expression based designs could be horribly complicated (check out e.g. [Andrei Alexandrescu’s Mojo article](https://www.drdobbs.com/move-constructors/184403855)) while modification based designs could always, and can still always, Do The Job™ in a reasonably simple way. But with the move semantics introduced in C++, not to mention the guaranteed RVO optimization of C++17, the ideal of expression based has become practical.
+This approach/design might be described as *modification based*, as opposed to the *expression based* user code that returning a pointer as function result, allows. The standard library is for the most part a modification based design, which might indicate that modification based is good. However, that has to do with history. With C++98 and C++03 efficient expression based designs could be horribly complicated (check out e.g. [Andrei Alexandrescu’s Mojo article](https://www.drdobbs.com/move-constructors/184403855)) while modification based designs could always, and can still always, Do The Job™ in a reasonably simple way. But with the move semantics introduced in C++11, not to mention the guaranteed RVO optimization of C++17, the ideal of expression based has become practical.
 
 ---
 
