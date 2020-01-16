@@ -1495,7 +1495,13 @@ However, in order to remove multiple nodes O(*n*)-efficiently such a variable is
     }
 ~~~
 
-This approach/design might be described as *modification based*, as opposed to the *expression based* user code that returning a pointer as function result, allows. The standard library is for the most part a modification based design, which might indicate that modification based is good. However, that has to do with history. With C++98 and C++03 efficient expression based designs could be horribly complicated (check out e.g. [Andrei Alexandrescu’s Mojo article](https://www.drdobbs.com/move-constructors/184403855)) while modification based designs could always, and can still always, Do The Job™ in a reasonably simple way. But with the move semantics introduced in C++11, not to mention the guaranteed RVO optimization of C++17, the ideal of expression based has become practical.
+This approach/design might be described as *modification based*, as opposed to the more clean *expression based* user code that returning a pointer as function result, allows. With C++98 and C++03 efficient expression based designs for “large” function results could be horribly complicated. For example, check out e.g. [Andrei Alexandrescu’s Mojo article](https://www.drdobbs.com/move-constructors/184403855). But with the move semantics introduced in C++11, not to mention the guaranteed RVO optimization of C++17, the ideal of expression based has become practical, and our fourth and fifth possible designs are expresison based.
+
+---
+
+Exception handling provides a separation of **normal case** code, such as a sequence of clean function calls accomplishing the main goal, and **failure case** code. Since the search function will possibly most often fail to find any node it’s a bit of stretch to define that as an exceptional “failure”, but doing so — the fourth approach — yields that desirable separation. In order to provide a message that can aid in debugging the exception should better be a `std::runtime_error` or derived class:
+
+
 
 ---
 
