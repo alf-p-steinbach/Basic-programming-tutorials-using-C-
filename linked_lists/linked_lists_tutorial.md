@@ -1495,7 +1495,7 @@ However, in order to remove multiple nodes O(*n*)-efficiently such a variable is
     }
 ~~~
 
-This approach/design might be described as *modification based*, as opposed to the more clean *expression based* user code that returning a pointer as function result, allows. With C++98 and C++03 efficient expression based designs for “large” function results could be horribly complicated. For example, check out [Andrei Alexandrescu’s C++03 Mojo article](https://www.drdobbs.com/move-constructors/184403855). But with the move semantics introduced in C++11, not to mention the guaranteed RVO optimization of C++17, the ideal of expression based has become practical. And our fourth and fifth possible designs are expresison based.
+This approach/design might be described as *modification based*, as opposed to the more clean *expression based* user code that returning a pointer as function result, allows. With C++98 and C++03 efficient expression based designs for “large” function results could be horribly complicated. For example, check out [Andrei Alexandrescu’s C++03 Mojo article](https://www.drdobbs.com/move-constructors/184403855). But with the move semantics introduced in C++11, not to mention the guaranteed RVO optimization of C++17, the ideal of expression based has become practical. And our fourth and fifth possible designs are expression based.
 
 ---
 
