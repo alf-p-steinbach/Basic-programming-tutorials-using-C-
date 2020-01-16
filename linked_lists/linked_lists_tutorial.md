@@ -58,7 +58,7 @@ This *next* link in the last node is a **null-link**: a special pointer or index
 
 You can **visit** the nodes in a list like the above in order, also called **traversing** the list, by starting with a link to the first node and just following the *next* links until you encounter the null-link in the last node:
 
-*<small>linked_list_idea.cpp</small>*
+[*<small>linked_list_idea.cpp</small>*](source/linked_list_idea.cpp)
 ~~~cpp
 #include <iostream>
 #include <map>
@@ -1376,6 +1376,7 @@ The first possibility, of if necessary creating a node to remove, fails to suppo
 
 The second possibility, pointer to *next* field,
 
+(in file *<small>pointer_list/remove_nodes.via_pointer_to_next_field.cpp</small>*)
 ~~~cpp
 template< class Func >
 auto next_field_pointing_to_node( const Func& has_desired_property, Node*& head )
