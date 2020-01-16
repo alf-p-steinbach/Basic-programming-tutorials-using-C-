@@ -1501,7 +1501,7 @@ This approach/design might be described as *modification based*, as opposed to t
 
 Exception handling provides a separation of **normal case** code, such as a sequence of clean function calls accomplishing the main goal, and **failure case** code.
 
-Since the search function will possibly most often fail to find any node it’s a bit of a stretch to define that as an exceptional “failure”, but doing so — the fourth approach — yields that desirable separation.
+Since the search function will possibly most often fail to find any node it’s a bit of a stretch to define that as an exceptional *contract* “failure”, but doing so — the fourth approach — yields that desirable separation.
 
 In order to provide a message that can aid in debugging the exception should better be a `std::runtime_error` or derived class:
 

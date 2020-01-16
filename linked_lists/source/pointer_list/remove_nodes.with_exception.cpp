@@ -1,78 +1,111 @@
 #include "list_copy_of_the_five_important_numbers.hpp"
 
 #include <math.h>           // ::abs
+#include <stdlib.h>         // EXIT_...
+    
 #include <iostream>
 #include <stdexcept>        // std::(runtime_error, exception)
-using std::cout, std::endl, runtime_error;
 
-void display( const Type_<const char*> explanation, const Type_<Node*> head )
-{
-    cout << explanation;
-    for( Node* p = head; p != nullptr; p = p->next ) {
-        cout << " " << p->value;
+namespace support {
+    using std::runtime_error, std::string;
+    using C_str = const char*;
+
+    [[noreturn]]
+    void fail( const C_str where, const string& message )
+    {
+        throw runtime_error( string() + where + " - " + message );
     }
-    cout << "." << endl;
-}
+}  // namespace support
 
-using C_str = const char*;
+namespace app {
+    using std::cout, std::endl, std::runtime_error;
+    using support::fail;
 
-void fail( const C_str where, const string& message )
-{
-    throw runtime_error( string() + where + " - " + message );
-}
-
-template< class Func >
-auto next_field_pointing_to_node( const Func& has_desired_property, Node*& head )
-    -> Node*&           // Reference to next-field
-{
-    Node* trailing = nullptr;
-    for(    Node* p = head;
-            p != nullptr;
-            p = p->next ) {
-        if( has_desired_property( p->value ) ) {
-            return (trailing == nullptr? head : trailing->next);
+    void display( const Type_<const char*> explanation, const Type_<Node*> head )
+    {
+        cout << explanation;
+        for( Node* p = head; p != nullptr; p = p->next ) {
+            cout << " " << p->value;
         }
-        trailing = p;
+        cout << "." << endl;
     }
-    fail( __func__, "failed to find specified node" );
-}
+
+    template< class Func >
+    auto next_field_pointing_to_node( const Func& has_desired_property, Node*& head )
+        -> Node*&           // Reference to next-field
+    {
+        Node* trailing = nullptr;
+        for(    Node* p = head;
+                p != nullptr;
+                p = p->next ) {
+            if( has_desired_property( p->value ) ) {
+                return (trailing == nullptr? head : trailing->next);
+            }
+            trailing = p;
+        }
+        fail( __func__, "failed to find specified node" );
+    }
+
+    void run()
+    {
+        struct List
+        {
+            Node* head = list_copy_of_the_five_important_numbers();
+            ~List() { delete_list( head ); }        // Auto cleanup also when exception.
+        };
+        
+        List list;
+
+        display( "Original values:", list.head );
+    #if defined( FAIL_PLEASE )
+
+        // If there is no node with value 7 then this just throws, which is OK.
+        const auto with_value_7 = [](double x) -> bool { return x == 7; };
+        delete unlinked( next_field_pointing_to_node( with_value_7, list.head ) );
+
+    #elif defined( EFFICIENT_PLEASE )
+
+        // Delete all nodes that are not 42, in a way that's O(n) efficient for a large list.
+        cout << "O(n)-deleting the too math-ish numbers..." << endl;
+        try  {
+            const auto not_42 = [](double x) -> bool { return x != 42; };
+            Node** pp_sublist_head = &list.head;
+            for( ;; ) {
+                Node*& next = next_field_pointing_to_node( not_42, *pp_sublist_head );
+                delete unlinked( next );
+                pp_sublist_head = &next;    // Search only in the part of the list after this.
+            }
+        } catch( const runtime_error& ) {
+            ;   // Ignore the exception, because it just means that no node was found.
+        }
+
+    #else
+
+        // Delete all nodes that are not 42, in a simple but O(n^2) way.
+        try  {
+            const auto not_42 = [](double x) -> bool { return x != 42; };
+            for( ;; ) {
+                delete unlinked( next_field_pointing_to_node( not_42, list.head ) );
+            }
+         } catch( const runtime_error& ) {
+            ;   // Ignore the exception, because it just means that no node was found.
+        }
+        cout << "O(n^2)-deleting the too math-ish numbers..." << endl;
+
+    #endif
+        display( "The list is now", list.head );
+    }
+}  // namespace app
 
 auto main()
     -> int
 {
-    Node* head = list_copy_of_the_five_important_numbers();
-
-    display( "Original values:", head );
-#if defined( UB_PLEASE )
-    // The pointer to next field function result makes it easy to do this inadvertently...
-    const auto with_value_7 = [](double x) -> bool { return x == 7; };
-    delete unlinked( next_field_pointing_to_node( with_value_7, head ) );
-#elif defined( EFFICIENT_PLEASE )
-    // Delete all nodes that are not 42, in a way that's O(n) efficient for a large list.
-    try  {
-        const auto not_42 = [](double x) -> bool { return x != 42; };
-        Node** pp_sublist_head = &head;
-        for( ;; ) {
-            Node*& next = next_field_pointing_to_node( not_42, *pp_sublist_head );
-            delete unlinked( next );
-            pp_sublist_head = &next;    // Search only in the part of the list after this.
-        }
-    } catch( const runtime_error& ) {
-        ;   // Ignore, it means the end of the list.
+    using std::exception, std::cerr, std::endl;
+    try {
+        app::run();
+        return EXIT_SUCCESS;
+    } catch( const exception& x ) {
+        cerr << "!" << x.what() << endl;
     }
-#else
-    // Delete all nodes that are not 42, in a simple but O(n^2) way.
-    try  {
-        const auto not_42 = [](double x) -> bool { return x != 42; };
-        for( ;; ) {
-            Node*& doomed = next_field_pointing_to_node( not_42, head );
-            delete unlinked( doomed );
-        }
-    } catch( const runtime_error& ) {
-        ;   // Ignore, it means the end of the list.
-    }
-#endif
-    display( "After deleting the too math-ish numbers the list is", head );
-
-    delete_list( head );
+    return EXIT_FAILURE;
 }
