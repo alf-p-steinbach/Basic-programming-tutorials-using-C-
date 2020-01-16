@@ -778,7 +778,7 @@ Possible solutions, ways to completely hide the nodes and their *next* pointers 
 
 Iterators are not very complex but they involve much boilerplate code, and in order to conform to the requirements on standard iterators one must get a lot of details right. An internal iteration state can be simple but it precludes having a `const` object, which throws out the baby with the bath water. So, below is one way to have a specified function called for each value in the list:
 
-[*<small>pointer_listconcrete_pointer_list.east_const.mutable_nodes_hidden_via_callback.cpp</small>*](source/pointer_listconcrete_pointer_list.east_const.mutable_nodes_hidden_via_callback.cpp)
+[*<small>pointer_list/concrete_pointer_list.east_const.mutable_nodes_hidden_via_callback.cpp</small>*](source/pointer_list/concrete_pointer_list.east_const.mutable_nodes_hidden_via_callback.cpp)
 ~~~cpp
 #include <iostream>
 using std::cout, std::endl;
@@ -1432,6 +1432,72 @@ For a list that’s long enough the O(*n*²) behavior will however likely become
 
 Since the searching now only goes forward in the list it considers each node once, so the total time for all the searches is known to be O(*n*).
 
+---
+
+The third possibility, returning a pointer to *next* field via a by-reference out-parameter, can look like this:
+
+[(in file *<small>pointer_list/remove_nodes.via_pointer_to_next_field.cpp</small>*)](source/pointer_list/remove_nodes.with_search_func_with_out_param.cpp)
+~~~cpp
+template< class Func >
+[[nodiscard]] // Better check the result, or cast to void to suppress a discard warning.
+auto find_next_field_pointing_to_node (
+    const Func&     has_desired_property,
+    Node*&          head,                   // Start of (sub-) list to search.
+    Node**&         result                  // Out-param, a pointer to a `next`-field.
+    ) -> bool
+{
+    Node* trailing = nullptr;
+    for(    Node* p = head;
+            p != nullptr;
+            p = p->next ) {
+        if( has_desired_property( p->value ) ) {
+            result = (trailing == nullptr? &head : &trailing->next);
+            return true;
+        }
+        trailing = p;
+    }
+    return false;
+}
+~~~
+
+With any reasonable compiler the **`[[nodiscard]]`** attribute will cause a diagnostic if the calling code fails to check the return value. If then also the programmer reasonably aims for a clean compile — no diagnostics — then this generally ensures that the calling code avoids UB. If one knows that a node will be found, and wants to avoid then no-purpose checking code, then the warning can be silenced by casting the return value to `void`:
+
+~~~cpp
+    Node** pp_doomed;                   // Indeterminate value after the declaration.
+    const auto with_value_7 = [](double x) -> bool { return x == 7; };
+    (void) find_next_field_pointing_to_node( with_value_7, head, pp_doomed );
+    delete unlinked( *pp_doomed );      // If `pp_doomed` is still indeterminate then UB.
+~~~
+ 
+The normal case for a short list goes like
+
+~~~cpp
+    // Delete all nodes that are not 42, in a simple but O(n^2) way.
+    const auto with_not_42 = [](double x) -> bool { return x != 42; };
+    Node** pp_doomed;
+    while( find_next_field_pointing_to_node( with_not_42, head, pp_doomed ) ) {
+        delete unlinked( *pp_doomed );
+    }
+~~~
+
+A problem with that is that a variable like `pp_doomed` needs to be declared even for removal of just a single node. That wasn’t necessary for the pointer return design. And it’s not necessary for the following two appoaches either.
+
+However, in order to remove multiple nodes O(*n*)-efficiently such a variable is needed anyway:
+
+~~~cpp
+    // Delete all nodes that are not 42, in a way that's O(n) efficient for a large list.
+    const auto with_not_42 = [](double x) -> bool { return x != 42; };
+    Node** pp_sublist_head = &head;
+    Node** pp_doomed;
+    while( find_next_field_pointing_to_node( with_not_42, *pp_sublist_head, pp_doomed ) ) {
+        delete unlinked( *pp_doomed );
+        pp_sublist_head = pp_doomed;    // Search only in the part of the list after this.
+    }
+~~~
+
+This approach/design might be described as *modification based*, as opposed to the *expression based* user code that returning a pointer as function result, allows. The standard library is for the most part a modification based design, which might indicate that modification based is good. However, that has to do with history. With C++98 and C++03 efficient expression based designs could be horribly complicated (check out e.g. [Andrei Alexandrescu’s Mojo article](https://www.drdobbs.com/move-constructors/184403855)) while modification based designs could always, and can still always, Do The Job™ in a reasonably simple way. But with the move semantics introduced in C++, not to mention the guaranteed RVO optimization of C++17, the ideal of expression based has become practical.
+
+---
 
 
 asdasd

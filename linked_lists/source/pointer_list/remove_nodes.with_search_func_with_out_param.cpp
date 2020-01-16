@@ -42,16 +42,16 @@ auto main()
     display( "Original values:", head );
 #if defined( UB_PLEASE )
     // It's unnatural to do the cast to `void` without meaning to, so it becomes unlikely.
-    Node** pp_doomed;       // Indeterminate value.
+    Node** pp_doomed;                   // Indeterminate value after the declaration.
     const auto with_value_7 = [](double x) -> bool { return x == 7; };
     (void) find_next_field_pointing_to_node( with_value_7, head, pp_doomed );
-    delete unlinked( *pp_doomed );      // `pp_doomed` is still indeterminate => UB.
+    delete unlinked( *pp_doomed );      // If `pp_doomed` is still indeterminate then UB.
 #elif defined( EFFICIENT_PLEASE )
     // Delete all nodes that are not 42, in a way that's O(n) efficient for a large list.
-    const auto not_42 = [](double x) -> bool { return x != 42; };
+    const auto with_not_42 = [](double x) -> bool { return x != 42; };
     Node** pp_sublist_head = &head;
     Node** pp_doomed;
-    while( find_next_field_pointing_to_node( not_42, *pp_sublist_head, pp_doomed ) ) {
+    while( find_next_field_pointing_to_node( with_not_42, *pp_sublist_head, pp_doomed ) ) {
         delete unlinked( *pp_doomed );
         pp_sublist_head = pp_doomed;    // Search only in the part of the list after this.
     }
