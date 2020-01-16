@@ -135,7 +135,7 @@ A `forward_list` is instead designed to appear as just an ordinary standard libr
 
 The iterators are usually obtained from the methods `.begin()` and `.end()`:
 
-*<small>std_forward_list/traversing_a_std_forward_list.with_iterators.cpp</small>*
+[*<small>std_forward_list/traversing_a_std_forward_list.with_iterators.cpp</small>*](source/std_forward_list/traversing_a_std_forward_list.with_iterators.cpp)
 ~~~cpp
 #include <forward_list>         // std::forward_list
 #include <iostream>
@@ -169,7 +169,7 @@ Here the call to **`begin`** obtains an iterator that refers to the node (if the
 
 For this particular usage, since the list offers standard `begin` and `end` methods one can alternatively just use a range based `for` loop, which gives shorter and cleaner code:
 
-*<small>std_forward_list/traversing_a_std_forward_list.with_range_based_for.cpp</small>*
+[*<small>std_forward_list/traversing_a_std_forward_list.with_range_based_for.cpp</small>*](source/std_forward_list/traversing_a_std_forward_list.with_range_based_for.cpp)
 ~~~cpp
 #include <forward_list>         // std::forward_list
 #include <iostream>
@@ -201,7 +201,7 @@ In order to output the “and” one must know that one’s traversal is current
 
 So, the only way to know that one is at the end of the list is to check whether the *next* iterator value compares equal to `.end()`. In effect one must look forward in the list 👀, from the current traversal point. Happily the standard library offers the **`std::next`** function that produces the value that `++`-incrementing an iterator variable would have produced:
 
-*<small>std_forward_list/comma_separated_values_of_a_std_forward_list.with_iterators.cpp</small>*
+[*<small>std_forward_list/comma_separated_values_of_a_std_forward_list.with_iterators.cpp</small>*](source/std_forward_list/comma_separated_values_of_a_std_forward_list.with_iterators.cpp)
 ~~~cpp
 #include <forward_list>         // std::forward_list
 #include <iostream>
@@ -244,7 +244,7 @@ The first and second possibilities, copying of values or text, are kludgy and in
 
 So it’s natural to just count the nodes, and the standard library’s `distance` function can do that — since for a pure *forward iterator* it just applies `++` repeatedly to its first iterator until it reaches the second:
 
-*<small>std_forward_list/comma_separated_values_of_a_std_forward_list.with_range_based_for.cpp</small>*
+[*<small>std_forward_list/comma_separated_values_of_a_std_forward_list.with_range_based_for.cpp</small>*](source/std_forward_list/comma_separated_values_of_a_std_forward_list.with_range_based_for.cpp)
 ~~~cpp
 #include <stddef.h>             // ptrdiff_t
 using Size = ptrdiff_t;
@@ -295,7 +295,7 @@ For both `vector` and `forward_list` one can do things in less straightforward w
 
 Anyway, corresponding to the efficient O(1) list insertion via `push_front` you can remove the first node in constant time via `pop_front`, and you can inspect the first value via just `front`:
 
-*<small>std_forward_list/insert_and_remove_numbers.cpp</small>*
+[*<small>std_forward_list/insert_and_remove_numbers.cpp</small>*](source/std_forward_list/insert_and_remove_numbers.cpp)
 ~~~cpp
 #include <forward_list>
 #include <iostream>
@@ -346,7 +346,7 @@ To avoid copying of values in your own implementation you’d have to use `.spli
 
 For an example where a reversal is practically needed, consider generating a Collatz sequence of integers in a `forward_list`. If a number *x* is even then the next Collatz sequence number is *x*/2, and if it’s odd then the next Collatz sequence number is 3*x* + 1. The **Collatz conjecture** is that no matter which positive integer you start with, if you follow this system then you’ll always eventually end up at 1, and that’s so well tested and likely true that it can just be assumed:
 
-*<small>std_forward_list/collatz.list.iterative.cpp</small>*
+[*<small>std_forward_list/collatz.list.iterative.cpp</small>*](source/std_forward_list/collatz.list.iterative.cpp)
 ~~~cpp
 #include <assert.h>         // assert
 #include <stdlib.h>         // EXIT_...
@@ -436,7 +436,7 @@ For an empty list there is no last node yet, so in general, e.g. for your own DI
 
 The code now approaches — though it doesn’t quite reach — the simplicity of expressing this with `vector`:
 
-*<small>std_forward_list/collatz.list.iterative_appending.cpp</small>*
+[*<small>std_forward_list/collatz.list.iterative_appending.cpp</small>*](source/std_forward_list/collatz.list.iterative_appending.cpp)
 ~~~cpp
 #include <assert.h>         // assert
 #include <stdlib.h>         // EXIT_...
@@ -552,7 +552,7 @@ The above implementation depends on the short-circuit behavior of the built-in C
 
 A complete program using the trailing link technique:
 
-*<small>std_forward_list/insert_sorted.using_trailing_link.cpp</small>*
+[*<small>std_forward_list/insert_sorted.using_trailing_link.cpp</small>*](source/std_forward_list/insert_sorted.using_trailing_link.cpp)
 ~~~cpp
 #include <forward_list>         // std::forward_list
 #include <initializer_list>     // Required for deduced type of brace initializer.
@@ -615,7 +615,7 @@ A C++ **pointer** is a memory address with some nice operations:
 
 The type of a pointer that refers to an `int` object is `int*`. More generally the type of a pointer that refers to an object of a type `T` is **`T*`**. And, crucially for use of pointers as links in nodes, because the size of a pointer itself is known to the compiler you can use the type `T*` even before `T` has been fully defined, at a point where `sizeof(T)` is not yet known:
 
-*<small>pointer_list/concrete_pointer_list.cpp</small>*
+[*<small>pointer_list/concrete_pointer_list.cpp</small>*](source/pointer_list/concrete_pointer_list.cpp)
 ~~~cpp
 #include <iostream>
 using std::cout, std::endl;
@@ -664,7 +664,7 @@ There is a cost: verbosity. But generally the consensus is that sprinkling `cons
 
 The language’s basic systematic `const` notation is that a `const` is placed *to the right* of what it refers to. Naturally this is called **east `const`** notation (heads-up: it’s not my preferred notation). Applied to the concrete linked list example it can go like this:
 
-*<small>pointer_list/concrete_pointer_list.east_const.cpp</small>*
+[*<small>pointer_list/concrete_pointer_list.east_const.cpp</small>*](source/pointer_list/concrete_pointer_list.east_const.cpp)
 ~~~cpp
 #include <iostream>
 using std::cout, std::endl;
@@ -707,7 +707,7 @@ In practice one therefore chooses to let the node type support mutable nodes, i.
 
 With a higher level abstraction like that it’s important to not let access to nodes and their *next* pointers escape out, otherwise one risks that some code will use that access to modify an originally `const` object, which is Undefined Behavior:
 
-*<small>pointer_list/concrete_pointer_list.east_const.ub_with_mutable_nodes.cpp</small>*
+[*<small>pointer_list/concrete_pointer_list.east_const.ub_with_mutable_nodes.cpp</small>*](source/pointer_list/concrete_pointer_list.east_const.ub_with_mutable_nodes.cpp)
 ~~~cpp
 #include <iostream>
 using std::cout, std::endl;
@@ -778,7 +778,7 @@ Possible solutions, ways to completely hide the nodes and their *next* pointers 
 
 Iterators are not very complex but they involve much boilerplate code, and in order to conform to the requirements on standard iterators one must get a lot of details right. An internal iteration state can be simple but it precludes having a `const` object, which throws out the baby with the bath water. So, below is one way to have a specified function called for each value in the list:
 
-*<small>pointer_listconcrete_pointer_list.east_const.mutable_nodes_hidden_via_callback.cpp</small>*
+[*<small>pointer_listconcrete_pointer_list.east_const.mutable_nodes_hidden_via_callback.cpp</small>*](source/pointer_listconcrete_pointer_list.east_const.mutable_nodes_hidden_via_callback.cpp)
 ~~~cpp
 #include <iostream>
 using std::cout, std::endl;
@@ -851,14 +851,14 @@ As far as I know the `Type_` support, modulo the name, was first proposed by Joh
 
 The type substitution support is not technically required to express this section’s example program with west `const`, but applying it for clarity it can go like this:
 
-*<small>Type_.hpp</small>*
+[*<small>Type_.hpp</small>*](source/Type_.hpp)
 ~~~cpp
 #pragma once
 template< class T > using Type_ = T;
 ~~~
 
 
-*<small>pointer_list/concrete_pointer_list.west_const.mutable_nodes_hidden_via_callback.cpp</small>*
+[*<small>pointer_list/concrete_pointer_list.west_const.mutable_nodes_hidden_via_callback.cpp</small>*](source/pointer_list/concrete_pointer_list.west_const.mutable_nodes_hidden_via_callback.cpp)
 ~~~cpp
 #include "../Type_.hpp"
 
@@ -909,7 +909,7 @@ In C++ dynamic allocation is strongly tied to initialization, via a **`new`-expr
 
 Example showing that an object dynamically allocated by one function can be deallocated in another function:
 
-*<small>pointer_list/new_and_delete.cpp</small>*
+[*<small>pointer_list/new_and_delete.cpp</small>*](source/pointer_list/new_and_delete.cpp)
 ~~~cpp
 #include "../Type_.hpp"
 
@@ -1006,7 +1006,7 @@ Adding a new node at the start of the list then consists of just
 
 Removing the head node is just opposite, so:
 
-*<small>pointer_list/insert_and_remove_numbers.in_pointer_list.cpp</small>*
+[*<small>pointer_list/insert_and_remove_numbers.in_pointer_list.cpp</small>*](source/pointer_list/insert_and_remove_numbers.in_pointer_list.cpp)
 ~~~cpp
 #include "../Type_.hpp"
 
@@ -1087,7 +1087,7 @@ So, for the teaching examples I prefer (and also if I had occasion to *actually*
 
 Ideally, to prevent these functions from being inadvertently applied to pointer variables other than *next* fields and *head* pointers, the *next* fields and *head* pointer should be a distinct type, some kind of trivial pointer wrapper. Counting against that idea is the fact that I’ve never inadvertently misapplied the functions, so at least for me there would be no significant advantage; a case of [YAGNI](https://en.wikipedia.org/wiki/You_aren%27t_gonna_need_it). Plus the distinct type would be more code and abstraction, i.e. less simple and clear, so:
 
-*<small>pointer_list/link_and_unlink_functions.cpp</small>*
+[*<small>pointer_list/link_and_unlink_functions.cpp</small>*](source/pointer_list/link_and_unlink_functions.cpp)
 ~~~cpp
 #include <iostream>
 using std::cout, std::endl;
@@ -1153,7 +1153,7 @@ With a pointer based list that link is naturally a pointer.
 
 For a list abstraction one may choose to maintain a last node pointer along with the node list. `forward_list` doesn’t, because it’s easy to add on top but impossible to remove, and also because it would constrain the operation set. Without any abstraction one will typically just temporarily maintain a last node pointer during a sequence of append operations.
 
-*<small>pointer_list/Node.hpp</small>*
+[*<small>pointer_list/Node.hpp</small>*](source/pointer_list/Node.hpp)
 ~~~cpp
 #pragma once
 
@@ -1185,7 +1185,7 @@ struct Node
 };
 ~~~
 
-*<small>pointer_list/list_copy_of_the_five_important_numbers.hpp</small>*
+[*<small>pointer_list/list_copy_of_the_five_important_numbers.hpp</small>*](source/pointer_list/list_copy_of_the_five_important_numbers.hpp)
 ~~~cpp
 #pragma once
 #include "Node.hpp"
@@ -1210,7 +1210,7 @@ inline auto list_copy_of_the_five_important_numbers()
 }
 ~~~
 
-*<small>pointer_list/five_numbers_as_pointer_list.cpp</small>*
+[*<small>pointer_list/five_numbers_as_pointer_list.cpp</small>*](source/pointer_list/five_numbers_as_pointer_list.cpp)
 ~~~cpp
 #include "list_copy_of_the_five_important_numbers.hpp"
 
@@ -1258,7 +1258,7 @@ With iterators that give access only to the values, detecting the end of the lis
 
 But with pointers to nodes the last node’s *next* pointer can be seen and is a `nullptr`, so it’s easy to detect the last node *without looking forward*:
 
-*<small>pointer_list/comma_separated_values_of_a_pointer_list.cpp</small>*
+[*<small>pointer_list/comma_separated_values_of_a_pointer_list.cpp</small>*](source/pointer_list/comma_separated_values_of_a_pointer_list.cpp)
 ~~~cpp
 #include "list_copy_of_the_five_important_numbers.hpp"
 
@@ -1297,7 +1297,7 @@ The function *could* return a `nullptr` to signal insertion at the front, but th
 
 One neat alternative is to instead return a reference to the *next* field that the calling code needs to modify, where the *head* pointer is regarded as a *next* field (this brings the number of *next* fields up to *n* + 1, just sufficient!):
 
-*<small>pointer_list/comma_separated_values_of_a_pointer_list.cpp</small>*
+[*<small>pointer_list/comma_separated_values_of_a_pointer_list.cpp</small>*](source/pointer_list/comma_separated_values_of_a_pointer_list.cpp)
 ~~~cpp
 #include "Node.hpp"
 
@@ -1376,7 +1376,7 @@ The first possibility, of if necessary creating a node to remove, fails to suppo
 
 The second possibility, pointer to *next* field,
 
-(in file *<small>pointer_list/remove_nodes.via_pointer_to_next_field.cpp</small>*)
+[(in file *<small>pointer_list/remove_nodes.via_pointer_to_next_field.cpp</small>*)](source/pointer_list/remove_nodes.via_pointer_to_next_field.cpp)
 ~~~cpp
 template< class Func >
 auto next_field_pointing_to_node( const Func& has_desired_property, Node*& head )
