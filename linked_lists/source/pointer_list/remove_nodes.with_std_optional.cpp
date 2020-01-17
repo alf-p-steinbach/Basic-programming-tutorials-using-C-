@@ -7,9 +7,10 @@
 #include <optional>         // std::optional
 #include <stdexcept>        // std::exception
 
+// throw Not_found( ""s + __func__ + " - failed to find specified node." );
+
 namespace app {
     using std::cout, std::endl, std::optional, std::reference_wrapper;
-    using namespace std::literals;      // ""s
 
     void display( const Type_<const char*> explanation, const Type_<Node*> head )
     {

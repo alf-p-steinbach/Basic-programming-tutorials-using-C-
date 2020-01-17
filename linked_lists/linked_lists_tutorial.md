@@ -1755,7 +1755,6 @@ Just to put everything in context, here’s the complete source code for the `op
 
 namespace app {
     using std::cout, std::endl, std::optional, std::reference_wrapper;
-    using namespace std::literals;      // ""s
 
     void display( const Type_<const char*> explanation, const Type_<Node*> head )
     {
