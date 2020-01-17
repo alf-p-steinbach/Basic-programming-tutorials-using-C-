@@ -1597,9 +1597,9 @@ try {
 }
 ~~~
 
-If you consider only the code within the `try` block that code would be direct, clean and short if just the lambda could be defined in a more concise way, as an *expression lambda* like `_1 != 42` — but as of C++17 that would involve use of some 3ʳᵈ party library. Anyway this construct and this use of an exception for normal case is probably much less than obvious to most readers. So it’s safety bought at the cost of obscurity and verbosity, but it’s an important step on the way to `std::optional`.
+If you consider only the code within the `try` block then this code would be direct, clean and short, albeit needlessly inefficient, if just the lambda could be defined in a more concise way as an *expression lambda* like `_1 != 42` — but as of C++17 that would involve use of some 3ʳᵈ party library.
 
-As before the O(*n*)-efficient version adds some complication:
+As before the O(*n*)-efficient version adds further complication:
 
 ~~~cpp
 // Delete all nodes that are not 42, in a way that's O(n) efficient for a large list.
@@ -1615,6 +1615,8 @@ try {
     ;   // Ignore the exception, because it just means that no node was found.
 }
 ~~~
+
+Anyway this construct and this use of an exception for normal case code is probably much less than obvious to most readers. So, it’s safety — no Undefined Behavior — bought at the cost of obscurity and verbosity. But the restructuring of the surrounding code to accomodate exceptions is an important step on the way to `std::optional`.
 
 ---
 
