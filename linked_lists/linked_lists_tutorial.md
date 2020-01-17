@@ -1640,7 +1640,7 @@ try {
 }
 ~~~
 
-Anyway this construct and this use of an exception for normal case code is probably much less than obvious to most readers. So, it’s safety — no Undefined Behavior — bought at the cost of obscurity and verbosity. But the restructuring of the surrounding code to accomodate exceptions is an important step on the way to `std::optional`.
+Anyway this construct and this use of an exception for normal case code is probably much less than obvious to most readers. So, it’s safety — no Undefined Behavior — bought at the cost of obscurity and verbosity. But the restructuring of the surrounding code to accommodate exceptions is an important step on the way to `std::optional`.
 
 ---
 
