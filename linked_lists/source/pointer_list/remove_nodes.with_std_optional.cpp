@@ -1,14 +1,11 @@
 #include "list_copy_of_the_five_important_numbers.hpp"
 
-#include <math.h>           // ::abs
 #include <stdlib.h>         // EXIT_...
     
 #include <functional>       // std::(ref, reference_wrapper)
 #include <iostream>
 #include <optional>         // std::optional
 #include <stdexcept>        // std::exception
-
-// throw Not_found( ""s + __func__ + " - failed to find specified node." );
 
 namespace app {
     using std::cout, std::endl, std::optional, std::reference_wrapper;
@@ -24,7 +21,7 @@ namespace app {
     }
 
     using Pos = optional<reference_wrapper<Node*>>;     // Ref. to next-field, or empty.
-    auto ref_of( Pos& pos ) -> Node*& { return pos->get(); }
+    auto ref_of( Pos pos ) -> Node*& { return pos.value().get(); }
 
     template< class Func >
     auto next_field_pointing_to_node( const Func& has_desired_property, Node*& head )
@@ -71,7 +68,7 @@ namespace app {
         Node** pp_sublist_head = &list.head;
         while( Pos next = next_field_pointing_to_node( not_42, *pp_sublist_head ) ) {
             delete unlinked( ref_of( next ) );
-            pp_sublist_head = &next;    // Search only in the part of the list after this.
+            pp_sublist_head = &ref_of( next );  // Search only in the rest of the list.
         }
 
     #else

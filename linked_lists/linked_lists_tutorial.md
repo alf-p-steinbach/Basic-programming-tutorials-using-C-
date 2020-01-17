@@ -45,7 +45,8 @@ It’s mostly about *understanding* things, which is necessary for analysis and 
     - [Pointer to *next*-field as function result.](#pointer-to-next-field-as-function-result)
     - [`bool` function result, pointer to *next* field via out-parameter.](#bool-function-result-pointer-to-next-field-via-out-parameter)
     - [*next* field reference as function result, exception if not found.](#next-field-reference-as-function-result-exception-if-not-found)
-- [asdasd](#asdasd)
+    - [Return a `std::optional` “value-or-nothing” wrapper.](#return-a-stdoptional-value-or-nothing-wrapper)
+    - [Complete source code for the `std::optional` approach.](#complete-source-code-for-the-stdoptional-approach)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -1644,24 +1645,220 @@ Anyway this construct and this use of an exception for normal case code is proba
 
 ---
 
+#### Return a `std::optional` “value-or-nothing” wrapper.
 
+The idea of `std::optional`  —  a model of a box that can be empty or hold a value — is to defer the exception throwing until there actually is a breach of contract. Namely, an exception occurs (only) if there is an attempt to access the return value when the function has returned an indication of no value, a logically *empty result*. But if the calling code instead checks the returned box for emptiness, e.g. via the `.has_value()` member function or the implicit conversion to `bool`, and acts accordingly, then there’s no costly exception.
 
+I.e. for `std::optional` the exception mechanism acts as just a safety mechanism, avoiding UB in the narrow little stretch of invalid usage code where it needs avoiding.
 
-asdasd
+As far as I know this scheme was first introduced in Barton and Nackman’s classic 1994 book “Scientific and Engineering C++”, where the box class was called `Fallible`.
+
+Unfortunately a `std::optional` can’t hold a reference as its boxed value, so one must either use a pointer as boxed value, or wrap the reference in something that can be boxed, such as a `std::reference_wrapper`. That’s not quite Winston Churchill’s “riddle wrapped in a mystery inside an enigma” but it’s close: a reference to a pointer, wrapped in a `reference_wrapper`, itself wrapped in an `optional`. Yup, complication.
+
+To reduce that complication a litte one can define a name for the `optional` `reference_wrapper`, and define a function, e.g. called `ref_of`, that produces the wrapped reference:
+
+[(in file *<small>pointer_list/remove_nodes.with_std_optional.cpp 
+</small>*)](source/pointer_list/remove_nodes.with_std_optional.cpp 
+)
+~~~cpp
+using Pos = optional<reference_wrapper<Node*>>;     // Ref. to next-field, or empty.
+auto ref_of( Pos pos ) -> Node*& { return pos.value().get(); }
+~~~
+
+In the `ref_of` function the sub-expression `pos.value()` produces a reference to the contained value (if there is one), a `reference_wrapper<Node*>&`. Then calling `.get()` on that value produces the inner wrapped `Node*` reference. The classes also define operators that can be used to do this in more cryptic ways.
+
+Fine point: `ref_of` takes its parameter by value so that it can be called with a function result as argument.
+
+Returning an empty `optional` when a node isn’t found is as simple as using `{}` to produce a default-constructed instance:
+
+~~~cpp
+template< class Func >
+auto next_field_pointing_to_node( const Func& has_desired_property, Node*& head )
+    -> Pos
+{
+    Node* trailing = nullptr;
+    for(    Node* p = head;
+            p != nullptr;
+            p = p->next ) {
+        if( has_desired_property( p->value ) ) {
+            return (trailing == nullptr? head : trailing->next);
+        }
+        trailing = p;
+    }
+    return {};
+}
+~~~
+
+The careless code that with earliest approaches produced UB, now looks like:
+
+~~~cpp
+display( "Original values:", list.head );
+    ⋮
+// If there is no node with value 7 then the implicit conversion from wrapper to
+// `Node*&` just throws, which is OK, but the exception message is not informative.
+
+const auto with_value_7 = [](double x) -> bool { return x == 7; };
+delete unlinked( ref_of( next_field_pointing_to_node( with_value_7, list.head ) ) );
+~~~
+
+Since we now don’t control the exception type or message — it’s all delegated to `optional` — the output isn’t particularly informative, but behavior that one can rely on and test is way better than Undefined Behavior:
+
+~~~txt
+Original values: 3.14 2.72 0 42 -1.
+!bad optional access
+~~~
+
+The straightforward but O(*n*²) node removal code:
+
+~~~cpp
+const auto not_42 = [](double x) -> bool { return x != 42; };
+while( Pos next = next_field_pointing_to_node( not_42, list.head ) ) {
+    delete unlinked( ref_of( next ) );
+}
+~~~
+
+That’s pretty clean now. 😊
+
+The slightly more complex O(*n*) node removal code:
+
+~~~cpp
+const auto not_42 = [](double x) -> bool { return x != 42; };
+Node** pp_sublist_head = &list.head;
+while( Pos next = next_field_pointing_to_node( not_42, *pp_sublist_head ) ) {
+    delete unlinked( ref_of( next ) );
+    pp_sublist_head = &ref_of( next );  // Search only in the rest of the list.
+}
+~~~
+
+Not so bad, but complex enough to suggest a missing abstraction or two — such as a linked list *class*.
+
+Thinking in that direction the `Pos` type certainly looks like something one could use to implement iterators like those of a `std::forward_list`.
 
 ---
 
+#### Complete source code for the `std::optional` approach.
+
+Just to put everything in context, here’s the complete source code for the `optional` approach:
+
+[*<small>pointer_list/remove_nodes.with_std_optional.cpp 
+</small>*)](source/pointer_list/remove_nodes.with_std_optional.cpp 
+)
+~~~cpp
+#include "list_copy_of_the_five_important_numbers.hpp"
+
+#include <stdlib.h>         // EXIT_...
+    
+#include <functional>       // std::(ref, reference_wrapper)
+#include <iostream>
+#include <optional>         // std::optional
+#include <stdexcept>        // std::exception
+
+namespace app {
+    using std::cout, std::endl, std::optional, std::reference_wrapper;
+    using namespace std::literals;      // ""s
+
+    void display( const Type_<const char*> explanation, const Type_<Node*> head )
+    {
+        cout << explanation;
+        for( Node* p = head; p != nullptr; p = p->next ) {
+            cout << " " << p->value;
+        }
+        cout << "." << endl;
+    }
+
+    using Pos = optional<reference_wrapper<Node*>>;     // Ref. to next-field, or empty.
+    auto ref_of( Pos pos ) -> Node*& { return pos.value().get(); }
+
+    template< class Func >
+    auto next_field_pointing_to_node( const Func& has_desired_property, Node*& head )
+        -> Pos
+    {
+        Node* trailing = nullptr;
+        for(    Node* p = head;
+                p != nullptr;
+                p = p->next ) {
+            if( has_desired_property( p->value ) ) {
+                return (trailing == nullptr? head : trailing->next);
+            }
+            trailing = p;
+        }
+        return {};
+    }
+
+    void run()
+    {
+        struct List     // If you have such class derive this from a `No_copy_or_move`.
+        {
+            Node* head = list_copy_of_the_five_important_numbers();
+            ~List() { delete_list( head ); }        // Auto cleanup also when exception.
+        };
+        
+        List list;
+
+        display( "Original values:", list.head );
+    #if defined( FAIL_PLEASE )
+
+        // If there is no node with value 7 then the implicit conversion from wrapper to
+        // `Node*&` just throws, which is OK, but the exception message is not informative.
+
+        const auto with_value_7 = [](double x) -> bool { return x == 7; };
+        delete unlinked( ref_of( next_field_pointing_to_node( with_value_7, list.head ) ) );
+
+    #elif defined( EFFICIENT_PLEASE )
+
+        // Delete all nodes that are not 42, in a way that's O(n) efficient for a large list.
+        // The `while` condition uses the wrapper's implicit conversion to `bool`.
+
+        cout << "O(n)-deleting the too math-ish numbers..." << endl;
+        const auto not_42 = [](double x) -> bool { return x != 42; };
+        Node** pp_sublist_head = &list.head;
+        while( Pos next = next_field_pointing_to_node( not_42, *pp_sublist_head ) ) {
+            delete unlinked( ref_of( next ) );
+            pp_sublist_head = &ref_of( next );  // Search only in the rest of the list.
+        }
+
+    #else
+
+        // Delete all nodes that are not 42, in a simple but O(n^2) way.
+
+        cout << "O(n^2)-deleting the too math-ish numbers..." << endl;
+        const auto not_42 = [](double x) -> bool { return x != 42; };
+        while( Pos next = next_field_pointing_to_node( not_42, list.head ) ) {
+            delete unlinked( ref_of( next ) );
+        }
+
+    #endif
+        display( "The list is now", list.head );
+    }
+}  // namespace app
+
+auto main()
+    -> int
+{
+    using std::exception, std::cerr, std::endl;
+    try {
+        app::run();
+        return EXIT_SUCCESS;
+    } catch( const exception& x ) {
+        cerr << "!" << x.what() << endl;
+    }
+    return EXIT_FAILURE;
+}
+~~~
+
+Output of the default code with the MinGW g++ 9.2 compiler in Windows 10:
+
+~~~txt
+Original values: 3.14 2.72 0 42 -1.
+O(n^2)-deleting the too math-ish numbers...
+The list is now 42.
+~~~
+
+
+----
 
 asdasd
 
-
-As of C++17 `std::optional` can not directly wrap references, but one can use a `std::reference_wrapper` as the wrapped value.
-
-
-
-
-
-asdasd
 ------
 
 With the older double-linked `std::list` the decision about which of moving and size should be constant time, and which should be linear time, was left up to the compiler in C++03. But in C++11 it was decided in favor of constant time size. So with `std::list` moving nodes between lists is a linear time operation, because they must be counted.
