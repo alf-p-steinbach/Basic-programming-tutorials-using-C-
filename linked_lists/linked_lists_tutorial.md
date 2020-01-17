@@ -1503,9 +1503,112 @@ Exception handling provides a separation of **normal case** code, such as a sequ
 
 Since the search function will possibly most often fail to find any node it’s a bit of a stretch to define that as an exceptional *contract* “failure”, but doing so — the fourth approach — yields that desirable separation.
 
-In order to provide a message that can aid in debugging the exception should better be a `std::runtime_error` or derived class:
+In order to provide a message that can aid in debugging the exception should better be a `std::runtime_error` or derived class. And for clarity and in order to not interfere with other exception handling the exception should better be a distinct user defined class. Which means deriving a custom exception class from `runtime_error`:
+
+[(in file *<small>pointer_list/remove_nodes.with_exception.cpp</small>*)](source/pointer_list/remove_nodes.with_exception.cpp)
+~~~cpp
+struct Not_found: runtime_error { using runtime_error::runtime_error; };
+
+template< class Func >
+auto next_field_pointing_to_node( const Func& has_desired_property, Node*& head )
+    -> Node*&           // Reference to next-field
+{
+    Node* trailing = nullptr;
+    for(    Node* p = head;
+            p != nullptr;
+            p = p->next ) {
+        if( has_desired_property( p->value ) ) {
+            return (trailing == nullptr? head : trailing->next);
+        }
+        trailing = p;
+    }
+    throw Not_found( ""s + __func__ + " - failed to find specified node." );
+}
+~~~
+
+The careless code that earlier was Undefined Behavior will now just throw an exception, which is well defined *if the exception is caught*.
+
+If on the other hand the exception is allowed to propagate all the way out of `main` then, although the behavior then is defined, one is once more back in the land of pretty undesirable effects. This is specified by C++17 §18.5.1/2. The TLDR is that the program is terminated, pronto, with no C++ level cleanup and with no guaranteed C level cleanup.
+
+Long version: in this case `std::terminate` is called without destructors of local objects being called — no C++ RAII cleanup. The default behavior of `terminate`, specified by C++17 §21.8.4.1, is to call `abort`, which the C++ standard requires to not execute “destructors for objects of automatic, thread, or static storage duration and without calling functions passed to `atexit()`”. Other than that the C++ standard just adopts whichever `abort` behavior the C standard specifies, which as of C99 (I don’t have the C11 standard) was “whether open streams with unwritten buffered data are flushed, open streams are closed, or temporary files are removed is implementation-defined. An implementation-defined form of the status unsuccessful termination is returned to the host environment by means of the function call `raise(SIGABRT)`.” Summing up again: nothing can be relied on other than immediate termination.
+
+Well, except, in practice you *can* rely on the process exit code not conforming to the conventions in Windows. With all implementations I know a normal unsuccessful exit in C++ gives process exit code 1, which in Windows is “Incorrect function”, and `abort` produces exit code 3, which in Windows is “The system cannot find the path specified”. So the effect is doubly ungood: no cleanup, and in at least one OS with misdirection as to what happened.
+
+So, `main` needs to be outfitted with a `try`-`catch`:
+
+~~~cpp
+auto main()
+    -> int
+{
+    using std::exception, std::cerr, std::endl;
+    try {
+        app::run();
+        return EXIT_SUCCESS;
+    } catch( const exception& x ) {
+        cerr << "!" << x.what() << endl;
+    }
+    return EXIT_FAILURE;
+}
+~~~
+
+Here `app::run` is just a convention I use for the main C++ level startup function, one that can safely exit via an exception.
+
+The careless code (now in the `app::run` function), that now has well-defined effect:
+
+~~~cpp
+display( "Original values:", list.head );
+    ⋮
+// If there is no node with value 7 then this just throws, which is OK.
+const auto with_value_7 = [](double x) -> bool { return x == 7; };
+delete unlinked( next_field_pointing_to_node( with_value_7, list.head ) );
+~~~
+
+Output:
+
+~~~cpp
+Original values: 3.14 2.72 0 42 -1.
+!next_field_pointing_to_node - failed to find specified node.
+~~~
+
+The previously simple but O(*n*²) code that works now involves a local `try`-`catch`:
+
+~~~cpp
+// Delete all nodes that are not 42, in a simple but O(n^2) way.
+try {
+    const auto not_42 = [](double x) -> bool { return x != 42; };
+    for( ;; ) {
+        delete unlinked( next_field_pointing_to_node( not_42, list.head ) );
+    }
+} catch( const Not_found& ) {
+    ;   // Ignore the exception, because it just means that no node was found.
+}
+~~~
+
+If you consider only the code within the `try` block that code would be direct, clean and short if just the lambda could be defined in a more concise way, as an *expression lambda* like `_1 != 42` — but as of C++17 that would involve use of some 3ʳᵈ party library. Anyway this construct and this use of an exception for normal case is probably much less than obvious to most readers. So it’s safety bought at the cost of obscurity and verbosity, but it’s an important step on the way to `std::optional`.
+
+As before the O(*n*)-efficient version adds some complication:
+
+~~~cpp
+// Delete all nodes that are not 42, in a way that's O(n) efficient for a large list.
+try {
+    const auto not_42 = [](double x) -> bool { return x != 42; };
+    Node** pp_sublist_head = &list.head;
+    for( ;; ) {
+        Node*& next = next_field_pointing_to_node( not_42, *pp_sublist_head );
+        delete unlinked( next );
+        pp_sublist_head = &next;    // Search only in the part of the list after this.
+    }
+} catch( const Not_found& ) {
+    ;   // Ignore the exception, because it just means that no node was found.
+}
+~~~
+
+---
 
 
+
+
+asdasd
 
 ---
 

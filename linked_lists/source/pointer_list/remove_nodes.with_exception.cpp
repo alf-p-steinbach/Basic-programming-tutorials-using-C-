@@ -6,20 +6,9 @@
 #include <iostream>
 #include <stdexcept>        // std::(runtime_error, exception)
 
-namespace support {
-    using std::runtime_error, std::string;
-    using C_str = const char*;
-
-    [[noreturn]]
-    void fail( const C_str where, const string& message )
-    {
-        throw runtime_error( string() + where + " - " + message );
-    }
-}  // namespace support
-
 namespace app {
     using std::cout, std::endl, std::runtime_error;
-    using support::fail;
+    using namespace std::literals;      // ""s
 
     void display( const Type_<const char*> explanation, const Type_<Node*> head )
     {
@@ -29,6 +18,8 @@ namespace app {
         }
         cout << "." << endl;
     }
+
+    struct Not_found: runtime_error { using runtime_error::runtime_error; };
 
     template< class Func >
     auto next_field_pointing_to_node( const Func& has_desired_property, Node*& head )
@@ -43,7 +34,7 @@ namespace app {
             }
             trailing = p;
         }
-        fail( __func__, "failed to find specified node" );
+        throw Not_found( ""s + __func__ + " - failed to find specified node." );
     }
 
     void run()
@@ -67,7 +58,7 @@ namespace app {
 
         // Delete all nodes that are not 42, in a way that's O(n) efficient for a large list.
         cout << "O(n)-deleting the too math-ish numbers..." << endl;
-        try  {
+        try {
             const auto not_42 = [](double x) -> bool { return x != 42; };
             Node** pp_sublist_head = &list.head;
             for( ;; ) {
@@ -75,22 +66,22 @@ namespace app {
                 delete unlinked( next );
                 pp_sublist_head = &next;    // Search only in the part of the list after this.
             }
-        } catch( const runtime_error& ) {
+        } catch( const Not_found& ) {
             ;   // Ignore the exception, because it just means that no node was found.
         }
 
     #else
 
         // Delete all nodes that are not 42, in a simple but O(n^2) way.
-        try  {
+        cout << "O(n^2)-deleting the too math-ish numbers..." << endl;
+        try {
             const auto not_42 = [](double x) -> bool { return x != 42; };
             for( ;; ) {
                 delete unlinked( next_field_pointing_to_node( not_42, list.head ) );
             }
-         } catch( const runtime_error& ) {
+        } catch( const Not_found& ) {
             ;   // Ignore the exception, because it just means that no node was found.
         }
-        cout << "O(n^2)-deleting the too math-ish numbers..." << endl;
 
     #endif
         display( "The list is now", list.head );
