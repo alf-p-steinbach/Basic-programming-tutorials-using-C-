@@ -3,11 +3,15 @@
 #include <math.h>           // ::abs
 #include <stdlib.h>         // EXIT_...
     
+#include <functional>       // std::(ref, reference_wrapper)
 #include <iostream>
-#include <stdexcept>        // std::(runtime_error, exception)
+#include <optional>         // std::optional
+#include <stdexcept>        // std::exception
+
+// throw Not_found( ""s + __func__ + " - failed to find specified node." );
 
 namespace app {
-    using std::cout, std::endl, std::runtime_error;
+    using std::cout, std::endl, std::optional, std::reference_wrapper;
     using namespace std::literals;      // ""s
 
     void display( const Type_<const char*> explanation, const Type_<Node*> head )
@@ -19,11 +23,12 @@ namespace app {
         cout << "." << endl;
     }
 
-    struct Not_found: runtime_error { using runtime_error::runtime_error; };
+    using Pos = optional<reference_wrapper<Node*>>;     // Ref. to next-field, or empty.
+    auto ref_of( Pos& pos ) -> Node*& { return pos->get(); }
 
     template< class Func >
     auto next_field_pointing_to_node( const Func& has_desired_property, Node*& head )
-        -> Node*&           // Reference to next-field
+        -> Pos
     {
         Node* trailing = nullptr;
         for(    Node* p = head;
@@ -34,7 +39,7 @@ namespace app {
             }
             trailing = p;
         }
-        throw Not_found( ""s + __func__ + " - failed to find specified node." );
+        return {};
     }
 
     void run()
@@ -50,37 +55,33 @@ namespace app {
         display( "Original values:", list.head );
     #if defined( FAIL_PLEASE )
 
-        // If there is no node with value 7 then this just throws, which is OK.
+        // If there is no node with value 7 then the implicit conversion from wrapper to
+        // `Node*&` just throws, which is OK, but the exception message is not informative.
+
         const auto with_value_7 = [](double x) -> bool { return x == 7; };
-        delete unlinked( next_field_pointing_to_node( with_value_7, list.head ) );
+        delete unlinked( ref_of( next_field_pointing_to_node( with_value_7, list.head ) ) );
 
     #elif defined( EFFICIENT_PLEASE )
 
         // Delete all nodes that are not 42, in a way that's O(n) efficient for a large list.
+        // The `while` condition uses the wrapper's implicit conversion to `bool`.
+
         cout << "O(n)-deleting the too math-ish numbers..." << endl;
-        try {
-            const auto not_42 = [](double x) -> bool { return x != 42; };
-            Node** pp_sublist_head = &list.head;
-            for( ;; ) {
-                Node*& next = next_field_pointing_to_node( not_42, *pp_sublist_head );
-                delete unlinked( next );
-                pp_sublist_head = &next;    // Search only in the part of the list after this.
-            }
-        } catch( const Not_found& ) {
-            ;   // Ignore the exception, because it just means that no node was found.
+        const auto not_42 = [](double x) -> bool { return x != 42; };
+        Node** pp_sublist_head = &list.head;
+        while( Pos next = next_field_pointing_to_node( not_42, *pp_sublist_head ) ) {
+            delete unlinked( ref_of( next ) );
+            pp_sublist_head = &next;    // Search only in the part of the list after this.
         }
 
     #else
 
         // Delete all nodes that are not 42, in a simple but O(n^2) way.
+
         cout << "O(n^2)-deleting the too math-ish numbers..." << endl;
-        try {
-            const auto not_42 = [](double x) -> bool { return x != 42; };
-            for( ;; ) {
-                delete unlinked( next_field_pointing_to_node( not_42, list.head ) );
-            }
-        } catch( const Not_found& ) {
-            ;   // Ignore the exception, because it just means that no node was found.
+        const auto not_42 = [](double x) -> bool { return x != 42; };
+        while( Pos next = next_field_pointing_to_node( not_42, list.head ) ) {
+            delete unlinked( ref_of( next ) );
         }
 
     #endif

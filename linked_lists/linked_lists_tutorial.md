@@ -1566,7 +1566,31 @@ auto main()
 
 Here `app::run` is just a convention I use for the main C++ level startup function, one that can safely exit via an exception.
 
-The careless code (now in the `app::run` function), that now has well-defined effect:
+And in `app::run` the earlier examples’ declaration and cleanup
+
+~~~cpp
+Node* head = list_copy_of_the_five_important_numbers();
+    ⋮
+delete_list( head );
+~~~
+
+… needs to be made exception safe via C++ RAII, e.g. via a little wrapper class:
+
+~~~cpp
+struct List     // If you have such class derive this from a `No_copy_or_move`.
+{
+    Node* head = list_copy_of_the_five_important_numbers();
+    ~List() { delete_list( head ); }        // Auto cleanup also when exception.
+};
+
+List list;
+~~~
+
+… where now instead of just `head` one writes `list.head`.
+
+An alternative to a custom wrapper class like `List` is to use a general **scope guard**, e.g. the Core Guideline’s [`gsl::final_action`](http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#gslutil-utilities).
+
+The careless code — now in the `app::run` function — now has well-defined effect:
 
 ~~~cpp
 display( "Original values:", list.head );
@@ -1597,7 +1621,7 @@ try {
 }
 ~~~
 
-If you consider only the code within the `try` block then this code would be direct, clean and short, albeit needlessly inefficient, if just the lambda could be defined in a more concise way as an *expression lambda* like `(_1 != 42)` — but as of C++17 that would involve use of some 3ʳᵈ party library like [Boost Lambda](https://www.boost.org/doc/libs/1_72_0/doc/html/lambda.html). As a matter of good design `next_field_pointing_to_node` should therefore probably have an overload taking just a value to search for, the most common use case. But I digress.
+If you consider only the code within the `try` block then this code would be direct, clean and short, albeit needlessly inefficient, if just the lambda could be defined in a more concise way as an **expression lambda** like `(_1 != 42)` — but as of C++17 that would involve use of some 3ʳᵈ party library like [Boost Lambda](https://www.boost.org/doc/libs/1_72_0/doc/html/lambda.html). As a matter of good design `next_field_pointing_to_node` should therefore probably have an overload taking just a value to search for, the most common use case. But I digress.
 
 As before the O(*n*)-efficient version adds further complication:
 
