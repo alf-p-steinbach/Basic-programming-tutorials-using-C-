@@ -40,6 +40,11 @@ It’s mostly about *understanding* things, which is necessary for analysis and 
   - [3.4 Keep a pointer to last node to append to a list in constant time.](#34-keep-a-pointer-to-last-node-to-append-to-a-list-in-constant-time)
   - [3.5 Do something before the end in a pointer based traversal (that’s easy).](#35-do-something-before-the-end-in-a-pointer-based-traversal-thats-easy)
   - [3.6 Insert in sorted position in a pointer based list.](#36-insert-in-sorted-position-in-a-pointer-based-list)
+  - [3.7 Find and remove nodes in a pointer list.](#37-find-and-remove-nodes-in-a-pointer-list)
+    - [Pointer to a possibly created node as function result.](#pointer-to-a-possibly-created-node-as-function-result)
+    - [Pointer to *next*-field as function result.](#pointer-to-next-field-as-function-result)
+    - [`bool` function result, pointer to *next* field via out-parameter.](#bool-function-result-pointer-to-next-field-via-out-parameter)
+    - [*next* field reference as function result, exception if not found.](#next-field-reference-as-function-result-exception-if-not-found)
 - [asdasd](#asdasd)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -1370,9 +1375,13 @@ Possible solutions include, in the order pretty stupid, then unsafe but simple, 
 
 ---
 
+#### Pointer to a possibly created node as function result.
+
 The first possibility, of if necessary creating a node to remove, fails to support code that tries to remove *all* nodes with a given value, unless some indication of “faux node” is provided for the automatically added node. Perhaps the created node can be given a special value, or perhaps the function can set a flag somewhere, which would be similar to machine code condition codes. But no matter how this is solved this approach adds both complexity and inefficiency.
 
 ---
+
+#### Pointer to *next*-field as function result.
 
 The second possibility, pointer to *next* field,
 
@@ -1433,6 +1442,8 @@ For a list that’s long enough the O(*n*²) behavior will however likely become
 Since the searching now only goes forward in the list it considers each node once, so the total time for all the searches is known to be O(*n*).
 
 ---
+
+#### `bool` function result, pointer to *next* field via out-parameter.
 
 The third possibility, returning a pointer to *next* field via a by-reference out-parameter, can look like this:
 
@@ -1499,9 +1510,11 @@ This approach/design might be described as *modification based*, as opposed to t
 
 ---
 
+#### *next* field reference as function result, exception if not found.
+
 Exception handling provides a separation of **normal case** code, such as a sequence of clean function calls accomplishing the main goal, and **failure case** code.
 
-Since the search function will possibly most often fail to find any node it’s a bit of a stretch to define that as an exceptional *contract* “failure”, but doing so — the fourth approach — yields that desirable separation.
+Since the search function will possibly most often fail to find any node it’s a bit of a stretch to define that as an exceptional *contract* “failure”, but doing so — this fourth approach — yields that desirable separation.
 
 In order to provide a message that can aid in debugging the exception should better be a `std::runtime_error` or derived class. And for clarity and in order to not interfere with other exception handling the exception should better be a distinct user defined class. Which means deriving a custom exception class from `runtime_error`:
 
