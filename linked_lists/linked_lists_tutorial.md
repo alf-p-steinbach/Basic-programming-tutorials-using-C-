@@ -1597,7 +1597,7 @@ try {
 }
 ~~~
 
-If you consider only the code within the `try` block then this code would be direct, clean and short, albeit needlessly inefficient, if just the lambda could be defined in a more concise way as an *expression lambda* like `(_1 != 42)` — but as of C++17 that would involve use of some 3ʳᵈ party library like [Boost Lambda](https://www.boost.org/doc/libs/1_72_0/doc/html/lambda.html).
+If you consider only the code within the `try` block then this code would be direct, clean and short, albeit needlessly inefficient, if just the lambda could be defined in a more concise way as an *expression lambda* like `(_1 != 42)` — but as of C++17 that would involve use of some 3ʳᵈ party library like [Boost Lambda](https://www.boost.org/doc/libs/1_72_0/doc/html/lambda.html). As a matter of design `next_field_pointing_to_node` should therefore probably have an overload taking just the value to search for, as the most common use case. But I digress.
 
 As before the O(*n*)-efficient version adds further complication:
 
