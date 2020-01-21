@@ -4,7 +4,7 @@
 #include <iostream>
 using std::cout, std::endl;
 
-auto next_field_for_sorted_insertion_of( const double new_value, Node*& list_head )
+auto find_position( const double new_value, Node*& list_head )
     -> Node*&
 {
     Node* trailing = nullptr;
@@ -24,7 +24,7 @@ auto main()
 
     // Insert the data sorted.
     for( const double v: data ) {
-        Node*& next = next_field_for_sorted_insertion_of( v, head );
+        Node*& next = find_position( v, head );
         (new Node{ nullptr, v})->link_in_before( next );
     }
 
