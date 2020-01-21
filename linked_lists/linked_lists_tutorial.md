@@ -42,12 +42,11 @@ It’s mostly about *understanding* things, which is necessary for analysis and 
   - [3.6 Insert in sorted position in a pointer based list.](#36-insert-in-sorted-position-in-a-pointer-based-list)
   - [3.7 Find and remove nodes in a pointer list.](#37-find-and-remove-nodes-in-a-pointer-list)
 - [4. A general search function for a pointer list.](#4-a-general-search-function-for-a-pointer-list)
-  - [4.1. Pointer to a possibly created node as function result.](#41-pointer-to-a-possibly-created-node-as-function-result)
-  - [4.2. Pointer to *next*-field as function result.](#42-pointer-to-next-field-as-function-result)
-  - [4.3. `bool` function result, pointer to *next* field via out-parameter.](#43-bool-function-result-pointer-to-next-field-via-out-parameter)
-  - [4.4. *next* field reference as function result, exception if not found.](#44-next-field-reference-as-function-result-exception-if-not-found)
-  - [4.5. Return a `std::optional` “value-or-nothing” wrapper.](#45-return-a-stdoptional-value-or-nothing-wrapper)
-  - [4.6. Complete source code for the `std::optional` approach.](#46-complete-source-code-for-the-stdoptional-approach)
+  - [4.1. Pointer to *next*-field as function result.](#41-pointer-to-next-field-as-function-result)
+  - [4.2. `bool` function result, pointer to *next* field via out-parameter.](#42-bool-function-result-pointer-to-next-field-via-out-parameter)
+  - [4.3. *next* field reference as function result, exception if not found.](#43-next-field-reference-as-function-result-exception-if-not-found)
+  - [4.4. Return a `std::optional` “value-or-nothing” wrapper.](#44-return-a-stdoptional-value-or-nothing-wrapper)
+  - [4.5. Complete source code for the `std::optional` approach.](#45-complete-source-code-for-the-stdoptional-approach)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -1451,7 +1450,7 @@ Besides, the first possiblity works only for removal of nodes. A search function
 
 ---
 
-### 4.2. Pointer to *next*-field as function result.
+### 4.1. Pointer to *next*-field as function result.
 
 The second possibility, pointer to *next* field,
 
@@ -1513,7 +1512,7 @@ Since the searching now only goes forward in the list it considers each node onc
 
 ---
 
-### 4.3. `bool` function result, pointer to *next* field via out-parameter.
+### 4.2. `bool` function result, pointer to *next* field via out-parameter.
 
 The third possibility, returning a pointer to *next* field via a by-reference out-parameter, can look like this:
 
@@ -1580,7 +1579,7 @@ This approach/design might be described as *modification based*, as opposed to t
 
 ---
 
-### 4.4. *next* field reference as function result, exception if not found.
+### 4.3. *next* field reference as function result, exception if not found.
 
 Exception handling provides a separation of **normal case** code, such as a sequence of clean function calls accomplishing the main goal, and **failure case** code.
 
@@ -1714,7 +1713,7 @@ Anyway this construct and this use of an exception for normal case code is proba
 
 ---
 
-### 4.5. Return a `std::optional` “value-or-nothing” wrapper.
+### 4.4. Return a `std::optional` “value-or-nothing” wrapper.
 
 The idea of `std::optional`  —  a model of a box that can be empty or hold a value — is to defer the exception throwing until there actually is a breach of contract. Namely, an exception occurs (only) if there is an attempt to access the return value when the function has returned an indication of no value, a logically *empty result*. But if the calling code instead checks the returned box for emptiness, e.g. via the `.has_value()` member function or the implicit conversion to `bool`, and acts accordingly, then there’s no costly exception.
 
@@ -1805,7 +1804,7 @@ Thinking in that direction the `Pos` type certainly looks like something one cou
 
 ---
 
-### 4.6. Complete source code for the `std::optional` approach.
+### 4.5. Complete source code for the `std::optional` approach.
 
 Just to put everything in context, here’s the complete source code for the `optional` approach:
 
