@@ -1454,7 +1454,7 @@ Besides, the first possiblity works only for removal of nodes. A search function
 
 The second possibility, pointer to *next* field,
 
-[(in file *<small>pointer_list/remove_nodes.via_pointer_to_next_field.cpp</small>*)](source/pointer_list/remove_nodes.via_pointer_to_next_field.cpp)
+[(in file *<small>pointer_list/search.via_pointer_to_next_field.cpp</small>*)](source/pointer_list/search.via_pointer_to_next_field.cpp)
 ~~~cpp
 template< class Func >
 auto next_field_pointing_to_node( const Func& has_desired_property, Node*& head )
@@ -1516,7 +1516,7 @@ Since the searching now only goes forward in the list it considers each node onc
 
 The third possibility, returning a pointer to *next* field via a by-reference out-parameter, can look like this:
 
-[(in file *<small>pointer_list/remove_nodes.via_pointer_to_next_field.cpp</small>*)](source/pointer_list/remove_nodes.with_search_func_with_out_param.cpp)
+[(in file *<small>pointer_list/search.via_pointer_to_next_field.cpp</small>*)](source/pointer_list/search.with_search_func_with_out_param.cpp)
 ~~~cpp
 template< class Func >
 [[nodiscard]] // Better check the result, or cast to void to suppress a discard warning.
@@ -1587,7 +1587,7 @@ Since the search function will possibly most often fail to find any node it’s 
 
 In order to provide a message that can aid in debugging the exception should better be a `std::runtime_error` or derived class. And for clarity and in order to not interfere with other exception handling the exception should better be a distinct user defined class. Which means deriving a custom exception class from `runtime_error`:
 
-[(in file *<small>pointer_list/remove_nodes.with_exception.cpp</small>*)](source/pointer_list/remove_nodes.with_exception.cpp)
+[(in file *<small>pointer_list/search.with_exception.cpp</small>*)](source/pointer_list/search.with_exception.cpp)
 ~~~cpp
 struct Not_found: runtime_error { using runtime_error::runtime_error; };
 
@@ -1725,8 +1725,8 @@ Unfortunately a `std::optional` can’t hold a reference as its boxed value, so 
 
 To reduce that complication a litte one can define a name for the `optional` `reference_wrapper`, and define a function, e.g. called `ref_of`, that produces the wrapped reference:
 
-[(in file *<small>pointer_list/remove_nodes.with_std_optional.cpp 
-</small>*)](source/pointer_list/remove_nodes.with_std_optional.cpp 
+[(in file *<small>pointer_list/search.with_std_optional.cpp 
+</small>*)](source/pointer_list/search.with_std_optional.cpp 
 )
 ~~~cpp
 using Pos = optional<reference_wrapper<Node*>>;     // Ref. to next-field, or empty.
@@ -1808,8 +1808,8 @@ Thinking in that direction the `Pos` type certainly looks like something one cou
 
 Just to put everything in context, here’s the complete source code for the `optional` approach:
 
-[*<small>pointer_list/remove_nodes.with_std_optional.cpp 
-</small>*)](source/pointer_list/remove_nodes.with_std_optional.cpp 
+[*<small>pointer_list/search.with_std_optional.cpp 
+</small>*)](source/pointer_list/search.with_std_optional.cpp 
 )
 ~~~cpp
 #include "list_copy_of_the_five_important_numbers.hpp"
