@@ -41,12 +41,13 @@ It’s mostly about *understanding* things, which is necessary for analysis and 
   - [3.5 Do something before the end in a pointer based traversal (that’s easy).](#35-do-something-before-the-end-in-a-pointer-based-traversal-thats-easy)
   - [3.6 Insert in sorted position in a pointer based list.](#36-insert-in-sorted-position-in-a-pointer-based-list)
   - [3.7 Find and remove nodes in a pointer list.](#37-find-and-remove-nodes-in-a-pointer-list)
-    - [Pointer to a possibly created node as function result.](#pointer-to-a-possibly-created-node-as-function-result)
-    - [Pointer to *next*-field as function result.](#pointer-to-next-field-as-function-result)
-    - [`bool` function result, pointer to *next* field via out-parameter.](#bool-function-result-pointer-to-next-field-via-out-parameter)
-    - [*next* field reference as function result, exception if not found.](#next-field-reference-as-function-result-exception-if-not-found)
-    - [Return a `std::optional` “value-or-nothing” wrapper.](#return-a-stdoptional-value-or-nothing-wrapper)
-    - [Complete source code for the `std::optional` approach.](#complete-source-code-for-the-stdoptional-approach)
+- [4. A general search function for a pointer list.](#4-a-general-search-function-for-a-pointer-list)
+  - [4.1. Pointer to a possibly created node as function result.](#41-pointer-to-a-possibly-created-node-as-function-result)
+  - [4.2. Pointer to *next*-field as function result.](#42-pointer-to-next-field-as-function-result)
+  - [4.3. `bool` function result, pointer to *next* field via out-parameter.](#43-bool-function-result-pointer-to-next-field-via-out-parameter)
+  - [4.4. *next* field reference as function result, exception if not found.](#44-next-field-reference-as-function-result-exception-if-not-found)
+  - [4.5. Return a `std::optional` “value-or-nothing” wrapper.](#45-return-a-stdoptional-value-or-nothing-wrapper)
+  - [4.6. Complete source code for the `std::optional` approach.](#46-complete-source-code-for-the-stdoptional-approach)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -1359,6 +1360,76 @@ And this is one case where such a pointer to pointer is a pointer that refers to
 
 ### 3.7 Find and remove nodes in a pointer list.
 
+<img src="images/remove_operation_part_1.png" height="120">
+<br><br>
+<img src="images/remove_operation_part_2.png" height="120">
+<br><br>
+<img src="images/remove_operation_part_3.png" height="120">
+<br><br>
+<img src="images/remove_operation_part_4.png" height="120">
+<br><br>
+<img src="images/remove_operation_part_5.png" height="120">
+<br><br>
+<img src="images/remove_operation_part_6.png" height="120">
+<br><br>
+
+[*<small>pointer_list/remove_specified_nodes.cpp</small>*](source/pointer_list/comma_separated_values_of_a_pointer_list.cpp)
+~~~cpp
+#include "list_copy_of_the_five_important_numbers.hpp"
+
+#include <stdlib.h>         // EXIT_...
+#include <iostream>
+using std::cout, std::endl;
+
+void display( const Type_<const char*> explanation, const Type_<Node*> head )
+{
+    cout << explanation;
+    for( Node* p = head; p != nullptr; p = p->next ) {
+        cout << " " << p->value;
+    }
+    cout << "." << endl;
+}
+
+auto main()
+    -> int
+{
+    Node* head = list_copy_of_the_five_important_numbers();
+    display( "Original values:", head );
+
+    // Delete all nodes that are not 42, in a way that's O(n) efficient for a large list.
+    cout << "O(n)-deleting the too math-ish numbers..." << endl;
+
+    Node*   p           = head;
+    Node*   trailing    = nullptr;
+    while( p != nullptr ) {
+        if( p->value != 42 ) {
+            Node*& next_field = (trailing == nullptr? head : trailing->next);
+            delete unlinked( next_field );
+            p = next_field;
+        } else {
+            trailing = p;  p = p->next;
+        }
+    }
+
+    display( "The list is now", head );
+    delete_list( head );
+}
+~~~
+
+Output:
+
+~~~txt
+Original values: 3.14 2.72 0 42 -1.
+O(n)-deleting the too math-ish numbers...
+The list is now 42.
+~~~
+
+Worth mentioning in passing, *if there guaranteed is a next node*, plus no other node pointers that need to be kept valid, then if you have a pointer directly to a node in a singly linked list you can effectively delete that node’s value from the sequence of values by copying the next node’s value here, and deleting the next node.
+
+As I recall I learned this little trick from an exercise in Donald Knuth’s classic “The Art of Computer Programming”.
+
+## 4. A general search function for a pointer list.
+
 As with sorted insertion, when you want to remove a node with a given value — or maybe all nodes with a given value, whatever — then a function to find the position of the node to remove is most convenient to use if it returns a reference to the previous node’s *next*
  field.
 
@@ -1374,15 +1445,13 @@ Possible solutions include, in the order pretty stupid, then unsafe but simple, 
 * Throw an exception if no node is found.
 * Return a `std::optional` “value-or-nothing” wrapper.
 
----
-
-#### Pointer to a possibly created node as function result.
-
 The first possibility, of if necessary creating a node to remove, fails to support code that tries to remove *all* nodes with a given value, unless some indication of “faux node” is provided for the automatically added node. Perhaps the created node can be given a special value, or perhaps the function can set a flag somewhere, which would be similar to machine code condition codes. But no matter how this is solved this approach adds both complexity and inefficiency.
 
+Besides, the first possiblity works only for removal of nodes. A search function that also can be used for other purposes would be much more versatile and useful. Provided the generalization doesn’t cost too much.
+
 ---
 
-#### Pointer to *next*-field as function result.
+### 4.2. Pointer to *next*-field as function result.
 
 The second possibility, pointer to *next* field,
 
@@ -1444,7 +1513,7 @@ Since the searching now only goes forward in the list it considers each node onc
 
 ---
 
-#### `bool` function result, pointer to *next* field via out-parameter.
+### 4.3. `bool` function result, pointer to *next* field via out-parameter.
 
 The third possibility, returning a pointer to *next* field via a by-reference out-parameter, can look like this:
 
@@ -1511,7 +1580,7 @@ This approach/design might be described as *modification based*, as opposed to t
 
 ---
 
-#### *next* field reference as function result, exception if not found.
+### 4.4. *next* field reference as function result, exception if not found.
 
 Exception handling provides a separation of **normal case** code, such as a sequence of clean function calls accomplishing the main goal, and **failure case** code.
 
@@ -1645,7 +1714,7 @@ Anyway this construct and this use of an exception for normal case code is proba
 
 ---
 
-#### Return a `std::optional` “value-or-nothing” wrapper.
+### 4.5. Return a `std::optional` “value-or-nothing” wrapper.
 
 The idea of `std::optional`  —  a model of a box that can be empty or hold a value — is to defer the exception throwing until there actually is a breach of contract. Namely, an exception occurs (only) if there is an attempt to access the return value when the function has returned an indication of no value, a logically *empty result*. But if the calling code instead checks the returned box for emptiness, e.g. via the `.has_value()` member function or the implicit conversion to `bool`, and acts accordingly, then there’s no costly exception.
 
@@ -1736,7 +1805,7 @@ Thinking in that direction the `Pos` type certainly looks like something one cou
 
 ---
 
-#### Complete source code for the `std::optional` approach.
+### 4.6. Complete source code for the `std::optional` approach.
 
 Just to put everything in context, here’s the complete source code for the `optional` approach:
 
