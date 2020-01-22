@@ -1562,6 +1562,14 @@ auto main()
 
 Perhaps for clarity in reuse the function should be called `reversed_list_of_all`, but hey.
 
+Output as before,
+
+~~~txt
+Original values: 3.14 2.72 0 42 -1.
+O(n)-deleting the too math-ish numbers...
+The list is now 42.
+~~~
+
 ----
 
 asdasd
