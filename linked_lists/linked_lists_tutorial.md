@@ -41,6 +41,8 @@ It’s mostly about *understanding* things, which is necessary for analysis and 
   - [3.5 Do something before the end in a pointer based traversal (that’s easy).](#35-do-something-before-the-end-in-a-pointer-based-traversal-thats-easy)
   - [3.6 Insert in sorted position in a pointer based list.](#36-insert-in-sorted-position-in-a-pointer-based-list)
   - [3.7 Find and remove nodes in a pointer list.](#37-find-and-remove-nodes-in-a-pointer-list)
+- [4. Sorting a singly linked list.](#4-sorting-a-singly-linked-list)
+  - [4.1 Use the Corncob free list of >58 000 English words as data.](#41-use-the-corncob-free-list-of-58%C2%A0000-english-words-as-data)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -1569,6 +1571,296 @@ Original values: 3.14 2.72 0 42 -1.
 O(n)-deleting the too math-ish numbers...
 The list is now 42.
 ~~~
+
+## 4. Sorting a singly linked list.
+
+We’ve [already sorted a pointer based linked list](#36-insert-in-sorted-position-in-a-pointer-based-list), namely by repeated insertions in sorted position. But since that approach uses O(*n*²) quadratic time it’s horribly inefficient for longer lists. It can be fast for a short list, even faster than more generally faster sorts, but as the list size increases prepare to waaaaaaaaaaaaaaaaiiiiiiiiiiiit…
+
+That **insertion sort** can be described more systematically as:
+
+1. Form two lists *u* and *s*, where *u* holds the unsorted items and *s* is empty.
+2. While *u* is not empty:  
+2.1. Extract the front of *u*, call that value *x*.  
+2.2. The searching part: insert *x* in sorted position in *s*.
+
+There is a corresponding **selection sort** that’s equally horribly O(*n*²) quadratic time inefficient for large lists:
+
+1. Form two lists *u* and *s*, where *u* holds the unsorted items and *s* is empty.
+2. While *u* is not empty:  
+2.1. The searching part: select and extract the largest value of *u*, call that value *x*.  
+2.2. Add *x* at the front of *s*.
+
+More efficients sorts are generally based on the idea of **divide and conquer**, or “divide et impera” as Caesar may have said:
+
+1. one first divides the data into *n* roughly equal size parts, where *n* is typically 2; then
+2. one sorts each part in the same way as the whole (this is a recursive step); and finally
+3. one combines the now sorted parts into a sorted whole.
+
+For the **quick sort** algorithm used by `std::sort` for random access containers, the comparison of values, the real sorting action, happens in the partitioning step. Quick sort does that by moving all values less than an opportunistically chosen **pivot value** to a first part, and the rest to a second part. In contrast, for the **merge sort** algorithm used by `std::forward_list::sort` the comparison of values happens in the re-combination of the parts, the merging, which (with this description/view) just consumes values in sorted order from the fronts of the now sorted part lists.
+
+As exemplified by `std::sort` and `std::forward_list::sort`, quick sort is the common default choice of sorting algorithm for an array, and merge sort is the common default choice of sorting algorithm for linked lists. However, I show both approaches for linked lists (and we’ll time them). But first of all, in order to have something substantial to sort, we’ll employ a divide and conquer approach similar to quicksort, just with random choice of which value goes to which part, to randomize a long list of English words. It’s a kind of inverse sorting. An unsorting.
+
+### 4.1 Use the Corncob free list of >58 000 English words as data.
+
+For the examples we’ll use [the Corncob free list of English words](http://www.mieliestronk.com/wordlist.html) as data to sort.
+
+It has more than 58 000 word in a simple text file, one per line. One perhaps interesting C++ problem is how to `#include` that file as data for a string literal. Instead of anything clever I just copied and pasted the text into a literal in a header:
+
+[*<small>data/english_words.hpp</small>*](source/data/english_words.hpp)
+~~~cpp
+#pragma once
+#include <string_view>
+
+namespace data {
+    using std::string_view;
+
+    // From the "Corncob" online dictionary,
+    // <url: http://www.mieliestronk.com/wordlist.html>.
+    const auto& english_words_literal = R"(
+aardvark
+aardwolf
+
+    ⋮
+
+zulus
+)";
+
+    // Two characters to ignore: '\n' at start and '\0' at end of the literal.
+    constexpr auto english_words = string_view(
+        english_words_literal + 1, sizeof( english_words_literal ) - 2
+        );
+
+}  // namespace data
+~~~
+
+### 4.2. A `Node` class, a `List` class and an `english_words_list()` function.
+
+The `double` values of section 3’s `Node` won’t do to handle these words, so a new `Node` type is needed. Since all the data is in a string literal these nodes don't need to inefficiently-for-C++ copy the words, as would happen with `std::string` values. All that’s needed for a value is a `std::string_view` that *refers* to a chunck of the big literal above:
+
+[*<small>sorting_singly_linked/Node.hpp</small>*](source/sorting_singly_linked/Node.hpp)
+~~~cpp
+#pragma once
+#include <string_view>
+
+namespace oneway_sorting_examples {
+    using std::string_view;
+
+    struct Node
+    {
+        Node*           next;
+        string_view     value;
+
+        void link_in_before( Node*& a_next_field )
+        {
+            next = a_next_field;
+            a_next_field = this;
+        }
+        
+        friend auto unlinked( Node*& a_next_field )
+            -> Node*
+        {
+            const auto result = a_next_field;
+            a_next_field = result->next;
+            return result;
+        }
+        
+        friend void delete_list( Node* head )
+        {
+            while( head != nullptr ) {
+                delete unlinked( head );
+            }
+        }
+    };
+}  // namespace oneway_sorting_examples
+~~~
+
+We’ll now be passing lists around, including returning them from functions, so it’s a good idea to also define a `List` type that ensures proper copying, moving and destruction. This type doesn’t need to encapsulate the inner workings of a list. We’re still learning and therefore dealing directly with raw, exposed list machinery, the inner nuts n’ bolts n’ gears, but now that machinery is at least safely fastened to a chassis, so to speak:
+
+[*<small>sorting_singly_linked/List.hpp</small>*](source/sorting_singly_linked/List.hpp)
+~~~cpp
+#include "../Type_.hpp"
+#include "Node.hpp"
+
+#include <stddef.h>         // ptrdiff_t
+#include <algorithm>        // std::(exchange, swap)
+
+namespace oneway_sorting_examples {
+    using std::exchange, std::swap;
+    using Size = ptrdiff_t;
+
+    // Just taking charge of copying, moving and destruction, not encapsulating internals.
+    // For convenience & DRYness provides a nested class `Appender` and a method `count`.
+    struct List
+    {
+        Node* head;
+
+        class Appender;                                         // Convenience.
+        inline auto count() const -> Size;                      // Convenience.
+
+        inline friend void swap( List& a, List& b ) noexcept;   // Declared for exposition.
+        inline auto operator=( const List& other ) -> List&;    // Copy assignment.
+        inline auto operator=( List&& other ) -> List&;         // Move assignment.
+        inline List();                                          // Default constructor.
+        inline List( const List& other );                       // Copy constructor.
+        inline List( List&& other );                            // Move constructor.    
+        inline ~List();                                         // Destructor.
+    };
+
+    class List::Appender
+    {
+        List&   m_list;
+        Node*   m_last;
+
+        Appender( const Appender& ) = delete;
+
+    public:
+        Appender( List& list ):
+            m_list( list ),
+            m_last( nullptr )
+        {
+            for( Node* p = m_list.head; p != nullptr; p = p->next ) {
+                m_last = p;
+            }
+        }
+
+        void append( const Type_<Node*> new_node )
+        {
+            Node*& beyond = (m_last == nullptr? m_list.head : m_last->next);
+            new_node->link_in_before( beyond );
+            m_last = new_node;
+        }
+    };
+
+    inline auto List::count() const
+        -> Size
+    {
+        Size n = 0;
+        for( Node* p = head; p != nullptr; p = p->next ) {
+            ++n;
+        }
+        return n;
+    }
+
+    inline void swap( List& a, List& b ) noexcept
+    {
+        swap( a.head, b.head );
+    }
+
+    inline auto List::operator=( const List& other )
+        -> List&
+    {
+        List temp = other;
+        swap( temp, *this );
+        return *this;
+    }
+        
+    inline auto List::operator=( List&& other )
+        -> List&
+    {
+        head = exchange( other.head, nullptr );
+        return *this;
+    }
+
+    inline List::List():
+        head( nullptr )
+    {}
+
+    inline List::List( const List& other ):
+        List()
+    {
+        Appender appender( *this );
+        for( Node* p = other.head; p != nullptr; p = p->next ) {
+            appender.append( new Node{ nullptr, p->value } );
+        }
+    }
+    
+    inline List::List( List&& other ):
+        head( exchange( other.head, nullptr ) )
+    {}
+
+    inline List::~List()
+    {
+        delete_list( head );
+    }
+
+}  // namespace oneway_sorting_examples
+~~~
+
+With that in the toolbox a function `english_words_list` for producing the 58 000+ words as individual nodes in a list, is straightforward:
+
+[*<small>sorting_singly_linked/english_words_list.hpp</small>*](source/sorting_singly_linked/english_words_list.hpp)
+~~~cpp
+#include "../data/english_words.hpp"
+#include "List.hpp"
+
+namespace oneway_sorting_examples {
+    
+    inline auto english_words_list()
+        -> List
+    {
+        const string_view&  s       = data::english_words;
+        const int           s_len   = s.length();
+
+        List list;
+        List::Appender appender( list );
+        int i_wordstart = 0;
+        while( i_wordstart < s_len ) {
+            int i_wordend = i_wordstart + 1;
+            while( i_wordend < s_len and s[i_wordend] != '\n' ) {
+                ++i_wordend;
+            }
+            const auto word = string_view( &s[i_wordstart], i_wordend - i_wordstart );
+            appender.append( new Node{ nullptr, word } );
+            i_wordstart = i_wordend + 1;
+        }
+        return list;
+    }
+
+}  // namespace oneway_sorting_examples
+~~~
+
+Finally, we should better test (not rigorously, but just, test) that this code works as intended, producing the data that we intend to randomize and then sort:
+
+[*<small>sorting_singly_linked/first_and_last_words.cpp</small>*](source/sorting_singly_linked/first_and_last_words.cpp)
+~~~cpp
+#include "english_words_list.hpp"
+namespace e = oneway_sorting_examples;
+
+#include <iostream>
+using std::cout, std::endl;
+
+auto main()
+    -> int
+{
+    e::List words = e::english_words_list();
+    const int n = words.count();
+    
+    cout << n << " words:" << endl;
+    int i = 0;
+    for( e::Node* p = words.head; p != nullptr; p = p->next ) {
+        if( i < 5 or n - 5 <= i ) {
+            if( i > 0 ) {
+                cout << ", ";
+            };
+            if( i == n - 5 ) {
+                cout << "..., ";
+            }
+            cout << p-> value;
+        }
+        ++i;
+    }
+    cout << "." << endl;
+}
+~~~
+
+Output:
+
+~~~cpp
+58112 words:
+aardvark, aardwolf, aaron, aback, abacus, ..., zooms, zooplankton, zoos, zulu, zulus.
+~~~
+
+That worked, yay!
 
 ----
 
