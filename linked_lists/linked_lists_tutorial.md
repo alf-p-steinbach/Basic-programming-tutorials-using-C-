@@ -1,6 +1,6 @@
 [<img src="images/up_button.png" align="right">](../README.md)
 
-# A biggish C++ linked lists tutorial
+# A biggish C++17 linked lists tutorial
 
 *This tutorial is in mid-writing, under construction. The programming language in the examples is C++, not C as indicated by the large Github-added header above. Unfortunately, three suggested ways to get rid of it did not work.*
 
@@ -1366,11 +1366,10 @@ And this is one case where such a pointer to pointer is a pointer that refers to
 <img src="images/remove_operation_part_6.png" height="120">
 <br><br>
 
-[*<small>pointer_list/remove_specified_nodes.cpp</small>*](source/pointer_list/comma_separated_values_of_a_pointer_list.cpp)
+[*<small>pointer_list/remove_specified_nodes.cpp</small>*](source/pointer_list/remove_specified_nodes.cpp)
 ~~~cpp
 #include "list_copy_of_the_five_important_numbers.hpp"
 
-#include <stdlib.h>         // EXIT_...
 #include <iostream>
 using std::cout, std::endl;
 
@@ -1418,6 +1417,70 @@ The list is now 42.
 ~~~
 
 Worth mentioning in passing, *if there guaranteed is a next node*, plus no other node pointers that need to be kept valid, then if you have a pointer directly to a node in a singly linked list you can effectively delete that node’s value from the sequence of values, in O(1) time, by copying the next node’s value here and deleting the next node. As I recall I learned this trick from an exercise in Donald Knuth’s classic “The Art of Computer Programming”.
+
+---
+
+The above code can’t easily be used for other purposes, in other programs, without wholescale modification. Deleting a node is so drastic a thing to do that it affects the code around this operation. For example, in the above code it invalidates the `p` pointer, which then points to a deleted node, a **dangling pointer**, so that to avoid UB it has to be reassigned, `p = next_field;`.
+
+However, instead of a having a search loop that traverses the list node by node, where the loop body deletes a node, one can have a loop where each iteration advances “directly” to the next node to delete, by calling a search function to find that next node. Well, the search function will chase pointers through the list just like the above code does. But with this refactoring the searching part will be **reusable**, code that you can lift right out and use for some different purpose.
+
+For a simple `nullptr`-terminated list the search function can support idiomatic `while(`*side-effect-based-advance*`)` usage code by returning a reference to the last *next* field in the list when it fails. Note that this relies on the C++ support for references. You can’t do the same in C, which is probably why I didn’t see it — I was *thinking in C* for the pointer stuff, learnings from the 1980’s — in my first sketch of this section.
+
+[*<small>pointer_list/remove_specified_nodes.using_a_search_function.cpp</small>*](source/pointer_list/remove_specified_nodes.using_a_search_function.cpp)
+~~~cpp
+#include "list_copy_of_the_five_important_numbers.hpp"
+
+#include <iostream>
+using std::cout, std::endl;
+
+void display( const Type_<const char*> explanation, const Type_<Node*> head )
+{
+    cout << explanation;
+    for( Node* p = head; p != nullptr; p = p->next ) {
+        cout << " " << p->value;
+    }
+    cout << "." << endl;
+}
+
+template< class Func >
+auto find( const Func& is_target, Node*& head )
+    -> Node*&           // Reference to the next-field of the previous node.
+{
+    Node*   trailing    = nullptr;
+    Node*   p           = head;
+    for( ;; ) {
+        if( p == nullptr or is_target( p->value ) ) {
+            return (trailing == nullptr? head : trailing->next);
+        }
+        trailing = p;  p = p->next;
+    }
+    // The execution will never get here.
+}
+
+auto find_not_42( Node*& head )
+    -> Node*&
+{ return find( [](double x){ return x != 42; }, head ); }
+
+auto main()
+    -> int
+{
+    Node* head = list_copy_of_the_five_important_numbers();
+    display( "Original values:", head );
+
+    // Delete all nodes that are not 42, in a way that's O(n) efficient for a large list.
+    cout << "O(n)-deleting the too math-ish numbers..." << endl;
+
+    Node** p_sublist_head = &head;
+    while( Node*& next_field = find_not_42( *p_sublist_head ) ) {
+        delete unlinked( next_field );
+        p_sublist_head = &next_field;
+    }
+
+    display( "The list is now", head );
+    delete_list( head );
+}
+~~~
+
 
 
 

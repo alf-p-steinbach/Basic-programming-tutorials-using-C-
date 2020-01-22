@@ -1,6 +1,5 @@
 #include "list_copy_of_the_five_important_numbers.hpp"
 
-#include <stdlib.h>         // EXIT_...
 #include <iostream>
 using std::cout, std::endl;
 
