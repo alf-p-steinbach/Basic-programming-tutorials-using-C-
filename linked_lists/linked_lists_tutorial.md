@@ -1560,7 +1560,7 @@ auto main()
 }
 ~~~
 
-
+Perhaps for clarity in reuse the function should be called `reversed_list_of_all`, but hey.
 
 ----
 
