@@ -43,7 +43,9 @@ It’s mostly about *understanding* things, which is necessary for analysis and 
   - [3.7 Find and remove nodes in a pointer list.](#37-find-and-remove-nodes-in-a-pointer-list)
 - [4. Sorting a singly linked list.](#4-sorting-a-singly-linked-list)
   - [4.1 Use the Corncob free list of >58 000 English words as data.](#41-use-the-corncob-free-list-of-58%C2%A0000-english-words-as-data)
-  - [4.2. A `Node` class, a `List` class and an `english_words_list()` function.](#42-a-node-class-a-list-class-and-an-english_words_list-function)
+  - [4.2. `Node` and `List` classes, and an `english_words_list()` function.](#42-node-and-list-classes-and-an-english_words_list-function)
+  - [4.3. Randomize a list efficiently.](#43-randomize-a-list-efficiently)
+- [asd](#asd)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
