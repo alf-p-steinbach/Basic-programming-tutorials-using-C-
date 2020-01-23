@@ -18,7 +18,7 @@ namespace oneway_sorting_examples {
         friend auto unlinked( Node*& a_next_field )
             -> Node*
         {
-            const auto result = a_next_field;
+            const Type_<Node*> result = a_next_field;
             a_next_field = result->next;
             return result;
         }
