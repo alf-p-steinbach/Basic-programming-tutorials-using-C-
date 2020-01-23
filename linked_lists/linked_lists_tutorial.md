@@ -1709,24 +1709,24 @@ namespace oneway_sorting_examples {
 
     class List::Appender
     {
-        List&   m_list;
+        Node*&  m_head;
         Node*   m_last;
 
         Appender( const Appender& ) = delete;
 
     public:
-        Appender( List& list ):
-            m_list( list ),
+        Appender( Node*& a_head_pointer ):
+            m_head( a_head_pointer ),
             m_last( nullptr )
         {
-            for( Node* p = m_list.head; p != nullptr; p = p->next ) {
+            for( Node* p = m_head; p != nullptr; p = p->next ) {
                 m_last = p;
             }
         }
 
         void append( const Type_<Node*> new_node )
         {
-            Node*& beyond = (m_last == nullptr? m_list.head : m_last->next);
+            Node*& beyond = (m_last == nullptr? m_head : m_last->next);
             new_node->link_in_before( beyond );
             m_last = new_node;
         }
@@ -1787,6 +1787,8 @@ namespace oneway_sorting_examples {
 }  // namespace oneway_sorting_examples
 ~~~
 
+The `Appender` class takes care of efficiently appending a sequence of nodes. It assumes or requires that the list structure is not changed by other means while this goes on. By moving the search for the last node from the constructor to the `append` function one could support insertion of new nodes between calls of that function, while keeping the instance, but then with marginal advantage and a serious cost of more complex usage conditions and less robust usage code.
+
 With that in the toolbox a function `english_words_list` for producing the 58 000+ words as individual nodes in a list, is straightforward:
 
 [*<small>sorting_singly_linked/english_words_list.hpp</small>*](source/sorting_singly_linked/english_words_list.hpp)
@@ -1803,7 +1805,7 @@ namespace oneway_sorting_examples {
         const int           s_len   = s.length();
 
         List list;
-        List::Appender appender( list );
+        List::Appender appender( list.head );
         int i_wordstart = 0;
         while( i_wordstart < s_len ) {
             int i_wordend = i_wordstart + 1;

@@ -10,7 +10,7 @@ namespace oneway_sorting_examples {
         const int           s_len   = s.length();
 
         List list;
-        List::Appender appender( list );
+        List::Appender appender( list.head );
         int i_wordstart = 0;
         while( i_wordstart < s_len ) {
             int i_wordend = i_wordstart + 1;

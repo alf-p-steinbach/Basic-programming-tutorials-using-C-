@@ -28,24 +28,24 @@ namespace oneway_sorting_examples {
 
     class List::Appender
     {
-        List&   m_list;
+        Node*&  m_head;
         Node*   m_last;
 
         Appender( const Appender& ) = delete;
 
     public:
-        Appender( List& list ):
-            m_list( list ),
+        Appender( Node*& a_head_pointer ):
+            m_head( a_head_pointer ),
             m_last( nullptr )
         {
-            for( Node* p = m_list.head; p != nullptr; p = p->next ) {
+            for( Node* p = m_head; p != nullptr; p = p->next ) {
                 m_last = p;
             }
         }
 
         void append( const Type_<Node*> new_node )
         {
-            Node*& beyond = (m_last == nullptr? m_list.head : m_last->next);
+            Node*& beyond = (m_last == nullptr? m_head : m_last->next);
             new_node->link_in_before( beyond );
             m_last = new_node;
         }
@@ -88,7 +88,7 @@ namespace oneway_sorting_examples {
     inline List::List( const List& other ):
         List()
     {
-        Appender appender( *this );
+        Appender appender( head );
         for( Node* p = other.head; p != nullptr; p = p->next ) {
             appender.append( new Node{ nullptr, p->value } );
         }
