@@ -40,7 +40,8 @@ namespace oneway_sorting_examples {
                     appender.append( unlinked( parts[i_rest].head ) );
                 } while( parts[i_rest].head != nullptr );
             } else { // n_non_empty == 2
-                appender.append( unlinked( parts[choices.next()].head ) );
+                const int i_random = choices.next();
+                appender.append( unlinked( parts[i_random].head ) );
             }
         }
     }

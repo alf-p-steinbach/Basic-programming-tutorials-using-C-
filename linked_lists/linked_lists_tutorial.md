@@ -1905,7 +1905,7 @@ When the data is all in main memory, as our words are, then for simplicity this 
 
 ---
 
-Something that produces a sequence of random yes/no’s is needed. Modern C++ code should use the facilities of the C++11 `<random>` header, and not the old C `rand` and `srand` functions. Unfortunately `<random>` is designed as a set of building blocks that encapsulate the difficult computer science stuff, but that aren’t really usable directly. A set of more directly usable wrappers is available here in header [`"my_random.hpp"`](source/my_random.hpp). In particular there’s a class `my_random::Choices` whose `.next()` method produces a pseudo-random sequence of `bool` values:
+Something that produces a sequence of random yes/no’s is needed. Modern C++ code should use the facilities of the C++11 `<random>` header, and not the old C `rand` and `srand` functions. Unfortunately `<random>` is designed as a set of building blocks that encapsulate the difficult computer science stuff, but that aren’t really usable directly. A set of more directly usable wrappers is available for this tutorial in header [`"my_random.hpp"`](source/my_random.hpp). In particular there’s a class `my_random::Choices` whose `.next()` method produces a pseudo-random `bool` value:
 
 
 
