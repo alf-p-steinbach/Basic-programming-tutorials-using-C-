@@ -43,6 +43,7 @@ It’s mostly about *understanding* things, which is necessary for analysis and 
   - [3.7 Find and remove nodes in a pointer list.](#37-find-and-remove-nodes-in-a-pointer-list)
 - [4. Sorting a singly linked list.](#4-sorting-a-singly-linked-list)
   - [4.1 Use the Corncob free list of >58 000 English words as data.](#41-use-the-corncob-free-list-of-58%C2%A0000-english-words-as-data)
+  - [4.2. A `Node` class, a `List` class and an `english_words_list()` function.](#42-a-node-class-a-list-class-and-an-english_words_list-function)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -1635,7 +1636,7 @@ zulus
 
 ### 4.2. A `Node` class, a `List` class and an `english_words_list()` function.
 
-The `double` values of section 3’s `Node` won’t do to handle these words, so a new `Node` type is needed. Since all the data is in a string literal these nodes don't need to inefficiently-for-C++ copy the words, as would happen with `std::string` values. All that’s needed for a value is a `std::string_view` that *refers* to a chunck of the big literal above:
+The `double` values of section 3’s `Node` won’t do to handle these words, so a new `Node` type is needed. Since all the data is in a string literal these nodes don't need to inefficiently-for-C++ copy the words, as would happen with `std::string` values. All that’s needed for a value is a `std::string_view` that *refers* to a chunk of the big literal above:
 
 [*<small>sorting_singly_linked/Node.hpp</small>*](source/sorting_singly_linked/Node.hpp)
 ~~~cpp
