@@ -1,4 +1,5 @@
-﻿#include "../Type_.hpp"
+﻿#pragma once
+#include "../Type_.hpp"
 #include "Node.hpp"
 
 #include <stddef.h>         // ptrdiff_t

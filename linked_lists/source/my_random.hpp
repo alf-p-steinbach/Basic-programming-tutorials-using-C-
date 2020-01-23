@@ -120,7 +120,7 @@ namespace my_random {
         }
         
         explicit Choices( const Seed seed = random_seed() ):
-            m_bits(),
+            m_bits( seed ),
             m_value( 0 ),
             m_n_bits_consumed( bits_per_<Bits_value> )
         {}

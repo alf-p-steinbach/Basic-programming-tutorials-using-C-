@@ -1634,9 +1634,46 @@ zulus
 }  // namespace data
 ~~~
 
-### 4.2. A `Node` class, a `List` class and an `english_words_list()` function.
+The `string_view` of the whole big literal may be just what one wants, just the data, thank you (e.g. for efficient searching), but at least for this tutorial the individual words are needed.  Since all the data is in a string literal it’s not necessary to inefficiently-for-C++ copy the words, as would happen with `std::string` values. All that’s needed for a value is a separate `std::string_view` that *refers* to a chunk of above literal:
 
-The `double` values of section 3’s `Node` won’t do to handle these words, so a new `Node` type is needed. Since all the data is in a string literal these nodes don't need to inefficiently-for-C++ copy the words, as would happen with `std::string` values. All that’s needed for a value is a `std::string_view` that *refers* to a chunk of the big literal above:
+[*<small>data/english_words_iteration.hpp</small>*](source/data/english_words_iteration.hpp)
+~~~cpp
+#include "english_words.hpp"
+
+#include <string_view>      // std::string_view
+
+namespace data {
+    using std::string_view;
+    
+    template< class Func >
+    inline void for_each_english_word( const Func& f )
+    {
+        const string_view&  s           = english_words;
+        const int           s_length    = s.length();
+
+        int i_wordstart = 0;
+        while( i_wordstart < s_length ) {
+            int i_wordend = i_wordstart + 1;
+            while( i_wordend < s_length and s[i_wordend] != '\n' ) {
+                ++i_wordend;
+            }
+            const int   word_length = i_wordend - i_wordstart;
+            const auto  word        = string_view( &s[i_wordstart], word_length );
+
+            f( word );
+
+            i_wordstart = i_wordend + 1;
+        }
+    }
+
+}  // namespace data
+~~~
+
+
+### 4.2. `Node` and `List` classes, and an `english_words_list()` function.
+
+The `double` values of section 3’s `Node` won’t do to handle these words, so a new `Node` type is needed.
+
 
 [*<small>sorting_singly_linked/Node.hpp</small>*](source/sorting_singly_linked/Node.hpp)
 ~~~cpp
@@ -1679,6 +1716,7 @@ We’ll now be passing lists around, including returning them from functions, so
 
 [*<small>sorting_singly_linked/List.hpp</small>*](source/sorting_singly_linked/List.hpp)
 ~~~cpp
+#pragma once
 #include "../Type_.hpp"
 #include "Node.hpp"
 
@@ -1787,13 +1825,13 @@ namespace oneway_sorting_examples {
 }  // namespace oneway_sorting_examples
 ~~~
 
-The `Appender` class takes care of efficiently appending a sequence of nodes. It assumes or requires that the list structure is not changed by other means while this goes on. By moving the search for the last node from the constructor to the `append` function one could support insertion of new nodes between calls of that function, while keeping the instance, but then with marginal advantage and a serious cost of more complex usage conditions and less robust usage code.
+The `Appender` class takes care of efficiently appending a sequence of nodes. It assumes and requires that the list structure is not changed by other means while this goes on. By moving the search for the last node from the constructor to the `append` function one could support insertion of new nodes between calls of that function, while keeping the instance, but then with marginal advantage and a serious cost of more complex usage conditions and less robust usage code.
 
 With that in the toolbox a function `english_words_list` for producing the 58 000+ words as individual nodes in a list, is straightforward:
 
 [*<small>sorting_singly_linked/english_words_list.hpp</small>*](source/sorting_singly_linked/english_words_list.hpp)
 ~~~cpp
-#include "../data/english_words.hpp"
+#include "../data/english_words_iteration.hpp"
 #include "List.hpp"
 
 namespace oneway_sorting_examples {
@@ -1801,21 +1839,12 @@ namespace oneway_sorting_examples {
     inline auto english_words_list()
         -> List
     {
-        const string_view&  s       = data::english_words;
-        const int           s_len   = s.length();
-
         List list;
         List::Appender appender( list.head );
-        int i_wordstart = 0;
-        while( i_wordstart < s_len ) {
-            int i_wordend = i_wordstart + 1;
-            while( i_wordend < s_len and s[i_wordend] != '\n' ) {
-                ++i_wordend;
-            }
-            const auto word = string_view( &s[i_wordstart], i_wordend - i_wordstart );
+        data::for_each_english_word( [&]( const string_view& word )
+        {
             appender.append( new Node{ nullptr, word } );
-            i_wordstart = i_wordend + 1;
-        }
+        } );
         return list;
     }
 
@@ -1872,7 +1901,13 @@ Ordinary manual shuffling of a deck of cards is much like a merge sort, except t
 
 In other words, manual shuffling is like divide and conquer with random combination of parts.
 
-When the data is all in memory, as our words are, then for simplicity this shuffling can be expressed as a recursive function, that after distributing the words equally to 2 parts lists calls itself to randomize those lists. With *n* words the recursion depth is then roughly log₂(*n*) = log(*n*)/log(2), which for *n* = 58112 is ‭≈15.8, which rounded up is 16. This means the call chain is far too short to cause stack overflow UB, so a simple recursive implementation is OK.
+When the data is all in main memory, as our words are, then for simplicity this shuffling can be expressed as a recursive function, that after distributing the words equally to 2 parts lists calls itself to randomize those lists. With *n* words the recursion depth is then roughly log₂(*n*) = log(*n*)/log(2), which for *n* = 58112 is ‭≈15.8, which rounded up is 16. This means the call chain is far too short to cause stack overflow UB, so a simple recursive implementation is OK.
+
+---
+
+Something that produces a sequence of random yes/no’s is needed. Modern C++ code should use the facilities of the C++11 `<random>` header, and not the old C `rand` and `srand` functions. Unfortunately `<random>` is designed as a set of building blocks that encapsulate the difficult computer science stuff, but that aren’t really usable directly. A set of more directly usable wrappers is available here in header [`"my_random.hpp"`](source/my_random.hpp). In particular there’s a class `my_random::Choices` whose `.next()` method produces a pseudo-random sequence of `bool` values:
+
+
 
 
 
