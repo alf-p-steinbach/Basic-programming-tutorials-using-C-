@@ -1597,9 +1597,9 @@ More efficients sorts are generally based on the idea of **divide and conquer**,
 2. one sorts each part in the same way as the whole (this is a recursive step); and finally
 3. one combines the now sorted parts into a sorted whole.
 
-For the **quick sort** algorithm used by `std::sort` for random access containers, the comparison of values, the real sorting action, happens in the partitioning step. Quick sort does that by moving all values less than an opportunistically chosen **pivot value** to a first part, and the rest to a second part. In contrast, for the **merge sort** algorithm used by `std::forward_list::sort` the comparison of values happens in the re-combination of the parts, the merging, which (with this description/view) just consumes values in sorted order from the fronts of the now sorted part lists.
+For the **Quicksort** algorithm used by `std::sort` for random access containers, the comparison of values, the real sorting action, happens in the partitioning step. Quick sort does that by moving all values less than an opportunistically chosen **pivot value** to a first part, and the rest to a second part. In contrast, for the **merge sort** algorithm used by `std::forward_list::sort` the comparison of values happens in the re-combination of the parts, the merging, which (with this description/view) just consumes values in sorted order from the fronts of the now sorted part lists.
 
-As exemplified by `std::sort` and `std::forward_list::sort`, quick sort is the common default choice of sorting algorithm for an array, and merge sort is the common default choice of sorting algorithm for linked lists. However, I show both approaches for linked lists (and we’ll time them). But first of all, in order to have something substantial to sort, we’ll employ a divide and conquer approach similar to quicksort, just with random choice of which value goes to which part, to randomize a long list of English words. It’s a kind of inverse sorting. An unsorting.
+As exemplified by `std::sort` and `std::forward_list::sort`, Quicksort is the common default choice of sorting algorithm for an array, and merge sort is the common default choice of sorting algorithm for linked lists. However, I show both approaches for linked lists (and we’ll time them). But first of all, in order to have something substantial to sort, we’ll employ a divide and conquer approach similar to quicksort, just with random choice of which value goes to which part, to randomize a long list of English words. It’s a kind of inverse sorting. An unsorting.
 
 ### 4.1 Use the Corncob free list of >58 000 English words as data.
 
@@ -1864,6 +1864,19 @@ aardvark, aardwolf, aaron, aback, abacus, ..., zooms, zooplankton, zoos, zulu, z
 ~~~
 
 That worked, yay!
+
+
+### 4.3. Randomize a list efficiently.
+
+Ordinary manual shuffling of a deck of cards is much like a merge sort, except that where the merge sort’s merging extracts maximal sorted sequences from already sorted parts, the shuffling’s merging extracts each successive value from a randomly chosen already randomized part.
+
+In other words, manual shuffling is like divide and conquer with random combination of parts.
+
+When the data is all in memory, as our words are, then for simplicity this shuffling can be expressed as a recursive function, that after distributing the words equally to 2 parts lists calls itself to randomize those lists. With *n* words the recursion depth is then roughly log₂(*n*) = log(*n*)/log(2), which for *n* = 58112 is ‭≈15.8, which rounded up is 16. This means the call chain is far too short to cause stack overflow UB, so a simple recursive implementation is OK.
+
+
+
+
 
 ----
 
