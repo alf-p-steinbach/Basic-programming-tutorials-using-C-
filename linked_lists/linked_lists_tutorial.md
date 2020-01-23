@@ -1982,7 +1982,7 @@ using my_random::Seed;
 using my_chrono::Timer_clock, my_chrono::Time_point, my_chrono::as_seconds;
 
 #include <iostream>
-using std::cout, std::endl;
+using std::cout, std::clog, std::endl;
 
 auto main()
     -> int
@@ -1996,7 +1996,8 @@ auto main()
     const Time_point end_time = Timer_clock::now();
     const double n_seconds = as_seconds( end_time - start_time );
 
-    cout << "Merge-shuffled " << n << " words in " << n_seconds << " seconds:" << endl;
+    clog << n_seconds << " seconds." << endl;
+    cout << "Merge-shuffled " << n << " words:" << endl;
     int i = 0;
     for( Node* p = words.head; p != nullptr; p = p->next ) {
         if( i < 5 or n - 5 <= i ) {
