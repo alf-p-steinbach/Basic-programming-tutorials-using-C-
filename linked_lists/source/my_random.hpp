@@ -1,4 +1,4 @@
-﻿#pragma once    // Source encoding: UTF-8 with BOM (π is a lowercase Greek "pi").
+﻿#pragma once
 // Based on
 // <url: https://github.com/alf-p-steinbach/cppx-core/blob/master/source/cppx-core/
 // stdlib-wrappers/random-numbers-util.hpp>
@@ -69,7 +69,7 @@ namespace my_random {
         Bits_value value = 0;
         constexpr int n_chunks = div_up( sizeof( Bits_value ), sizeof( unsigned ) );
         static_assert( n_chunks >= 1 );
-        for( int i = 1;; ++i ) {
+        for( int i = 1; true; ++i ) {
             value |= hardware_entropy();
             if( i == n_chunks ) {
                 break;

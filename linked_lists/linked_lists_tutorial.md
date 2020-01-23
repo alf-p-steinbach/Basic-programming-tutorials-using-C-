@@ -407,14 +407,14 @@ auto main( int n_command_parts, char** command_parts )
 Example building and output (this is in Cmd in Windows 10):
 
 ~~~txt
-[X:\linked lists (for github)\source\std_forward_list]
+[X:\source\std_forward_list]
 > g++64 collatz.list.iterative.cpp
 
-[X:\linked lists (for github)\source\std_forward_list]
+[X:\source\std_forward_list]
 > a
 !Usage: a STARTING_NUMBER
 
-[X:\linked lists (for github)\source\std_forward_list]
+[X:\source\std_forward_list]
 > for /L %c in (1, 1, 11) do @a %c
 1.
 2 -> 1.
@@ -1599,7 +1599,7 @@ More efficients sorts are generally based on the idea of **divide and conquer**,
 
 For the **Quicksort** algorithm used by `std::sort` for random access containers, the comparison of values, the real sorting action, happens in the partitioning step. Quick sort does that by moving all values less than an opportunistically chosen **pivot value** to a first part, and the rest to a second part. In contrast, for the **merge sort** algorithm used by `std::forward_list::sort` the comparison of values happens in the re-combination of the parts, the merging, which (with this description/view) just consumes values in sorted order from the fronts of the now sorted part lists.
 
-As exemplified by `std::sort` and `std::forward_list::sort`, Quicksort is the common default choice of sorting algorithm for an array, and merge sort is the common default choice of sorting algorithm for linked lists. However, I show both approaches for linked lists (and we’ll time them). But first of all, in order to have something substantial to sort, we’ll employ a divide and conquer approach similar to quicksort, just with random choice of which value goes to which part, to randomize a long list of English words. It’s a kind of inverse sorting. An unsorting.
+As exemplified by `std::sort` and `std::forward_list::sort`, Quicksort is the common default choice of sorting algorithm for an array, and merge sort is the common default choice of sorting algorithm for linked lists. However, I show both approaches for linked lists (and we’ll time them). But first of all, in order to have something substantial to sort we’ll employ a divide and conquer approach similar to merge sort, just with random choice of which parts values come from in the merging, to randomize a long list of English words. It’s a kind of inverse sorting. An unsorting.
 
 ### 4.1 Use the Corncob free list of >58 000 English words as data.
 
@@ -1897,26 +1897,155 @@ That worked, yay!
 
 ### 4.3. Randomize a list efficiently.
 
-Ordinary manual shuffling of a deck of cards is much like a merge sort, except that where the merge sort’s merging extracts maximal sorted sequences from already sorted parts, the shuffling’s merging extracts each successive value from a randomly chosen already randomized part.
+Modern C++ code should use the facilities of the C++11 `<random>` header, and not the old C `rand` and `srand` functions. The old functions are likely to generate value sequences that are far from ideally random, and if I used them here I would be teaching you Bad Habits™. Unfortunately direct use of the modern and more solid computer science based `<random>` header facilities is very much less convenient, and more verbose, than using the old functions.
 
-In other words, manual shuffling is like divide and conquer with random combination of parts.
+I therefore placed a set of more convenient wrappers in [header `"my_random.hpp"`](source/my_random.hpp). For the shuffling we’ll use the class `my_random::Choices` whose `.next()` method produces a pseudo-random `bool` value. The header also provides `my_random::Integers` and `my_random::Numbers`, where the latter produces floating point numbers in range 0 through 1.
 
-When the data is all in main memory, as our words are, then for simplicity this shuffling can be expressed as a recursive function, that after distributing the words equally to 2 parts lists calls itself to randomize those lists. With *n* words the recursion depth is then roughly log₂(*n*) = log(*n*)/log(2), which for *n* = 58112 is ‭≈15.8, which rounded up is 16. This means the call chain is far too short to cause stack overflow UB, so a simple recursive implementation is OK.
+When the data to be shuffled is all in main memory, as our words are, then for simplicity shuffling of a list can be expressed as a recursive function, one that after distributing the words equally to 2 parts lists calls itself to randomize those lists, and after that randomly merges the now randomly order part lists. With *n* words and 2 part lists the recursion depth is roughly log₂(*n*) = log(*n*)/log(2), which for *n* = 58112 is ‭≈15.8, which rounded up is 16. This means that the call chain is far too short to cause stack overflow UB, so that a simple recursive implementation is OK.
 
----
+[*<small>sorting_singly_linked/merge_shuffle.hpp</small>*](source/sorting_singly_linked/merge_shuffle.hpp)
+~~~cpp
+#pragma once
+#include "List.hpp"
+#include "../my_random.hpp"
 
-Something that produces a sequence of random yes/no’s is needed. Modern C++ code should use the facilities of the C++11 `<random>` header, and not the old C `rand` and `srand` functions. Unfortunately `<random>` is designed as a set of building blocks that encapsulate the difficult computer science stuff, but that aren’t really usable directly. A set of more directly usable wrappers is available for this tutorial in header [`"my_random.hpp"`](source/my_random.hpp). In particular there’s a class `my_random::Choices` whose `.next()` method produces a pseudo-random `bool` value:
+#include <array>        // std::array
 
+namespace oneway_sorting_examples {
+    using std::array;
+    using my_random::Choices, my_random::Seed, my_random::random_seed;
+    
+    inline void merge_shuffle( List& list, Choices& choices )
+    {
+        // Recursion base case: a list with n <= 1 nodes is necessarily randomly ordered.
+        if( list.head == nullptr or list.head->next == nullptr ) {
+            return;
+        }
+        array<List, 2> parts;
+        
+        // Divide the nodes about equally to part lists (a partitioning of nodes):
+        for( int i = 0; list.head != nullptr; ) {
+            unlinked( list.head )->link_in_before( parts[i%2].head );
+            ++i;
+        }
+        
+        // Recurse:
+        for( int i = 0; i < 2; ++i ) {
+            merge_shuffle( parts[i], choices );
+        }
+        
+        // Merge the now random 2 parts randomly:
+        List::Appender appender( list.head );
+        for( ;; ) {
+            const int n_empty = (parts[0].head == nullptr) + (parts[1].head == nullptr);
+            if( n_empty == 2 ) {
+                break;      // Hurray, we're finished at this recursion level.
+            } else if( n_empty == 1 ) {
+                const int i_rest = (parts[0].head != nullptr? 0 : 1);
+                do {
+                    appender.append( unlinked( parts[i_rest].head ) );
+                } while( parts[i_rest].head != nullptr );
+            } else { // n_empty == 0
+                const int i_random = choices.next();
+                appender.append( unlinked( parts[i_random].head ) );
+            }
+        }
+    }
 
+    inline void merge_shuffle( List& list, const Seed seq_nr = random_seed() )
+    {
+        Choices choices( seq_nr );
+        merge_shuffle( list, choices );
+    }
 
+}  // namespace oneway_sorting_examples
+~~~
 
-
-
+Possibly this list shuffle and the corresponding list shuffle that’s like Quicksort instead of like merge sort, have special names. However, I’m not familiar with such names. Happily, since linked lists are rarely used, for the practicing programmer — as opposed to the computer scientist — there’s no big practical need for names.
 
 ----
 
-asdasd
+For *n*  nodes, at each of the log₂(*n*) recursion levels each node is considered once, so the total time is O(*n*⋅log(*n*)). This is acceptable. But still, since in our case log₂(*n*) ≈ 16 one can reasonable expect that an O(*n*) algorithm will be 16 times as fast for this data set, and a constant factor of 16 is far from insignificant.
 
+Can a linked list be shuffled in O(*n*) time without using O(*n*) extra memory? I don’t know of any way, and I doubt that it can be done. In contrast, as you’ll see O(*n*) time shuffling for an array is easy.
+
+To measure elapsed time modern C++ code should use the C++11 `<chrono>` header, instead of the old C `clock` function. However, as with the `<random>` header direct use of those facilities is inconvenient and verbose. For this tutorial I therefore provide a [header `"my_chrono.hpp"`](source/my_chrono.hpp) that provides an alias `my_chrono::Timer_clock`, a function `my_chrono::as_seconds` that produces an ordinary `double` value, and ditto functions for milliseconds, microseconds and nanoseconds.
+
+[*<small>sorting_singly_linked/first_and_last_words.merge-shuffled.cpp</small>*](source/sorting_singly_linked/first_and_last_words.merge-shuffled.cpp)
+~~~cpp
+#include "../my_chrono.hpp"
+#include "english_words_list.hpp"
+#include "merge_shuffle.hpp"
+namespace x = oneway_sorting_examples;
+using x::Node, x::List, x::english_words_list, x::merge_shuffle;
+using my_random::Seed;
+using my_chrono::Timer_clock, my_chrono::Time_point, my_chrono::as_seconds;
+
+#include <iostream>
+using std::cout, std::endl;
+
+auto main()
+    -> int
+{
+    List words = english_words_list();
+    const int n = words.count();
+    
+    const Time_point start_time = Timer_clock::now();
+    const int seq_nr = 42;
+    merge_shuffle( words, Seed( seq_nr ) ); // seq_nr => get the same result every time.
+    const Time_point end_time = Timer_clock::now();
+    const double n_seconds = as_seconds( end_time - start_time );
+
+    cout << "Merge-shuffled " << n << " words in " << n_seconds << " seconds:" << endl;
+    int i = 0;
+    for( Node* p = words.head; p != nullptr; p = p->next ) {
+        if( i < 5 or n - 5 <= i ) {
+            if( i > 0 ) {
+                cout << ", ";
+            };
+            if( i == n - 5 ) {
+                cout << "..., ";
+            }
+            cout << p-> value;
+        }
+        ++i;
+    }
+    cout << "." << endl;
+}
+~~~
+
+Result with MinGW g++ 9.2 in Windows 10, using optimization option `-O3`:
+
+~~~txt
+0.01499 seconds.
+Merge-shuffled 58112 words:
+usurer, undisguised, hosepipe, reasonless, fouled, ..., hawaii, droving, cathartic, accesses, stuffiness.
+~~~
+
+The measured time of some code can vary from one run of the program to the next, and it can be so short that it’s difficult to measure accurately using the old `clock` function (especially in Windows, where it has very low resolution). So usually one should put the code to measure in a simple loop that executes it thousands of times, measure the total elapsed time and divide by the number of executions. But happily that’s not necessary for this code and dataset on my old laptop.
+
+Still it doesn’t hurt to check if e.g. 11 consecutive runs produce similar times:
+
+~~~txt
+[X:\source\sorting_singly_linked]
+> for /L %x in (1,1,11) do @(a>nul)
+0.015972 seconds.
+0.01599 seconds.
+0.011994 seconds.
+0.011993 seconds.
+0.012992 seconds.
+0.011995 seconds.
+0.011994 seconds.
+0.011993 seconds.
+0.012993 seconds.
+0.011993 seconds.
+0.011971 seconds.
+~~~
+
+Apparently in Windows slow runs like the first two here occur randomly, at the whim of Windows, maybe influenced by the momentary phase of the moon.
+
+
+asd
 ------
 
 With the older double-linked `std::list` the decision about which of moving and size should be constant time, and which should be linear time, was left up to the compiler in C++03. But in C++11 it was decided in favor of constant time size. So with `std::list` moving nodes between lists is a linear time operation, because they must be counted.

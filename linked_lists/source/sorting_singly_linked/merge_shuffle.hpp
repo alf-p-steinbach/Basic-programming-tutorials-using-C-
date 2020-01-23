@@ -10,14 +10,14 @@ namespace oneway_sorting_examples {
     
     inline void merge_shuffle( List& list, Choices& choices )
     {
-        // Fine point: don't recurse infinitely on a list with 1 node. So check also that:
+        // Recursion base case: a list with n <= 1 nodes is necessarily randomly ordered.
         if( list.head == nullptr or list.head->next == nullptr ) {
             return;
         }
         array<List, 2> parts;
         
-        // Partition, where all that matters is to divide the nodes about equally:
-        for( int i; list.head != nullptr; ) {
+        // Divide the nodes about equally to part lists (a partitioning of nodes):
+        for( int i = 0; list.head != nullptr; ) {
             unlinked( list.head )->link_in_before( parts[i%2].head );
             ++i;
         }
@@ -30,16 +30,15 @@ namespace oneway_sorting_examples {
         // Merge the now random 2 parts randomly:
         List::Appender appender( list.head );
         for( ;; ) {
-            const int n_non_empty =
-                (parts[0].head != nullptr) + (parts[1].head != nullptr);
-            if( n_non_empty == 0 ) {
-                break;
-            } else if( n_non_empty == 1 ) {
+            const int n_empty = (parts[0].head == nullptr) + (parts[1].head == nullptr);
+            if( n_empty == 2 ) {
+                break;      // Hurray, we're finished at this recursion level.
+            } else if( n_empty == 1 ) {
                 const int i_rest = (parts[0].head != nullptr? 0 : 1);
                 do {
                     appender.append( unlinked( parts[i_rest].head ) );
                 } while( parts[i_rest].head != nullptr );
-            } else { // n_non_empty == 2
+            } else { // n_empty == 0
                 const int i_random = choices.next();
                 appender.append( unlinked( parts[i_random].head ) );
             }
