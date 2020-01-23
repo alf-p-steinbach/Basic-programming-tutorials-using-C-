@@ -1634,7 +1634,7 @@ zulus
 }  // namespace data
 ~~~
 
-The `string_view` of the whole big literal, `english_words`, may be just what one wants, just the data, thank you (e.g. for efficient searching), but at least for this tutorial the individual words are needed.  Since all the data is in a string literal it’s not necessary to inefficiently-for-C++ copy the words, as would happen with `std::string` values. All that’s needed for a value is a little separate `std::string_view` that *refers* to a chunk of above literal:
+The `string_view` of the whole big literal, `english_words`, may be just what one wants, just the data, thank you (e.g. for efficient searching), but at least for this tutorial the individual words are needed.  Since all the data is in a string literal it’s not necessary to inefficiently-for-C++ copy the words, as would happen with `std::string` values. All that’s needed for a value is a little separate `string_view` that *refers* to a chunk of above literal:
 
 [*<small>data/english_words_iteration.hpp</small>*](source/data/english_words_iteration.hpp)
 ~~~cpp
