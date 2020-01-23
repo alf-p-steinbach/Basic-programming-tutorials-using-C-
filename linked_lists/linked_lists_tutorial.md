@@ -1903,7 +1903,7 @@ Modern C++ code should use the facilities of the C++11 `<random>` header, and no
 
 I therefore placed a set of more convenient wrappers in [header `"my_random.hpp"`](source/my_random.hpp). For the shuffling we’ll use the class `my_random::Choices` whose `.next()` method produces a pseudo-random `bool` value. The header also provides `my_random::Integers` and `my_random::Numbers`, where the latter produces floating point numbers in range 0 through 1.
 
-When the data to be shuffled is all in main memory, as our words are, then for simplicity shuffling of a list can be expressed as a recursive function, one that after distributing the words equally to 2 parts lists calls itself to randomize those lists, and after that randomly merges the now randomly order part lists. With *n* words and 2 part lists the recursion depth is roughly log₂(*n*) = log(*n*)/log(2), which for *n* = 58112 is ‭≈15.8, which rounded up is 16. This means that the call chain is far too short to cause stack overflow UB, so that a simple recursive implementation is OK.
+When the data to be shuffled is all in main memory, as our words are, then for simplicity shuffling of a list can be expressed as a recursive function, one that after distributing the words about equally to 2 parts lists calls itself to randomize those lists, and after that randomly merges the now randomly ordered part lists. With *n* words and 2 part lists the recursion depth is roughly log₂(*n*) = log(*n*)/log(2), which for *n* = 58112 is ‭≈15.8, which rounded up is 16. This means that the call chain is far too short to cause stack overflow UB, so that a simple recursive implementation is OK.
 
 [*<small>sorting_singly_linked/merge_shuffle.hpp</small>*](source/sorting_singly_linked/merge_shuffle.hpp)
 ~~~cpp
