@@ -2226,7 +2226,9 @@ curiosity, others, nightmarish, detachments, accept, ..., hitchhiked, jots, pars
 0.0021085 seconds per shuffle.
 ~~~
 
-It looks like MinGW g++ optimizes this slightly better than Visual C++, with roughly 0.0017 seconds per shuffle versus roughly 0.0021 seconds.
+Asking for averaging produced very similar numbers.
+
+So, it looks like MinGW g++ optimizes this slightly better than Visual C++, with roughly 0.0017 seconds per shuffle versus roughly 0.0022 seconds.
 
 Compared to the roughly 0.012 seconds for the linked list merge shuffle with g++, the 0.0017 seconds array shuffle is roughly 7.06 times faster. However, keep in mind that these numbers are just one arbitrary real example. The main point is that not only in theoretical big Oh behavior but also in practice for a not minimal data set, arrays win handily over linked lists, with shorter and faster code for arrays plus, arrays have standard library support for this task via `std::shuffle`.
 
