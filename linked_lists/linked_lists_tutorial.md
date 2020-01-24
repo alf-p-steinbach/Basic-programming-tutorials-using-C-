@@ -2039,7 +2039,7 @@ Merge-shuffled 58112 words:
 usurer, undisguised, hosepipe, reasonless, fouled, ..., hawaii, droving, cathartic, accesses, stuffiness.
 ~~~
 
-The measured time of some code can vary from one run of the program to the next, and it can be so short that it’s difficult to measure accurately using the old `clock` function (especially in Windows, where it has very low resolution). So usually one should put the code to measure in a simple loop that executes it thousands of times, measure the total elapsed time and divide by the number of executions. But happily the above result shows that that’s not necessary for this particular code and dataset on my old laptop.
+The measured time of some code can vary from one run of the program to the next, and it can be so short that it’s difficult to measure accurately using the old `clock` function (especially in Windows, where it has very low resolution), or even with modern `<chrono>` timing. So usually one should put the code to measure in a simple loop that executes it thousands of times, measure the total elapsed time and divide by the number of executions. But happily the above result shows that that’s not necessary for this particular code and dataset on my old laptop.
 
 Still it doesn’t hurt to check if e.g. 11 consecutive runs produce similar times:
 
@@ -2102,11 +2102,10 @@ void array_shuffle( vector<string_view>& words, const Seed a_seed = random_seed(
     my_random::Generator g( a_seed.value() );
     const Size max_index = words.size() - 1;
     for( Index i = 0; i < max_index - 1; ++i ) {
-        const Size      n_left      = words.size() - i;
-        const Index     rpos_other  = my_random::Integer_<Index>::from( g, n_left );
-        const Index     i_other     = max_index - rpos_other;
-        if( i != i_other ) {
-            swap( words[i], words[i_other] );
+        const Size      n_left          = words.size() - i;
+        const Index     offset_other    = my_random::Integer_<Index>::from( g, n_left );
+        if( offset_other != 0 ) {
+            swap( words[i], words[i + offset_other] );
         }
     }
 }

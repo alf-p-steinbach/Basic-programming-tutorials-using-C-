@@ -29,11 +29,10 @@ void array_shuffle( vector<string_view>& words, const Seed a_seed = random_seed(
     my_random::Generator g( a_seed.value() );
     const Size max_index = words.size() - 1;
     for( Index i = 0; i < max_index - 1; ++i ) {
-        const Size      n_left      = words.size() - i;
-        const Index     rpos_other  = my_random::Integer_<Index>::from( g, n_left );
-        const Index     i_other     = max_index - rpos_other;
-        if( i != i_other ) {
-            swap( words[i], words[i_other] );
+        const Size      n_left          = words.size() - i;
+        const Index     offset_other    = my_random::Integer_<Index>::from( g, n_left );
+        if( offset_other != 0 ) {
+            swap( words[i], words[i + offset_other] );
         }
     }
 }
