@@ -1876,7 +1876,7 @@ auto main()
         if( i < 5 or n - 5 <= i ) {
             if( i > 0 ) {
                 cout << ", ";
-            };
+            }
             if( i == n - 5 ) {
                 cout << "..., ";
             }
