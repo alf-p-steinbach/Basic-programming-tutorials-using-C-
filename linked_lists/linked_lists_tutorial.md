@@ -1981,7 +1981,7 @@ Possibly this list shuffle and the corresponding list shuffle that’s like Quic
 
 For *n*  nodes, at each of the log₂(*n*) recursion levels each node is considered once, so the total time is O(*n*⋅log(*n*)). This is acceptable. But still, since in our case log₂(*n*) ≈ 16 one can reasonably expect that an O(*n*) algorithm will be 16 times as fast for this data set, and a constant factor of 16 is far from insignificant.
 
-But can a linked list be shuffled in O(*n*) time without using O(*n*) extra memory? I don’t know of any way, and I doubt that it can be done. In contrast, as you’ll see O(*n*) time shuffling for an array is easy.
+But can a linked list be shuffled in O(*n*) time without using O(*n*) extra memory? I don’t know of any way, and I doubt that it can be done. In contrast, as you’ll see O(*n*) time shuffling of an array is easy.
 
 To measure elapsed time modern C++ code should use the C++11 `<chrono>` header, instead of the old C `clock` function. However, as with the `<random>` header direct use of those facilities is inconvenient and verbose. For this tutorial I therefore provide a [header `"my_chrono.hpp"`](source/my_chrono.hpp) that provides an alias `my_chrono::Timer_clock`, a function `my_chrono::as_seconds` that produces an ordinary `double` value, and ditto functions for milliseconds, microseconds and nanoseconds.
 
@@ -2057,6 +2057,7 @@ Still it doesn’t hurt to check if e.g. 11 consecutive runs produce similar tim
 0.011971 seconds.
 ~~~
 
+They do, OK.
 
 ---
 
