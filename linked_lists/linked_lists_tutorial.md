@@ -2147,6 +2147,88 @@ auto main()
 }
 ~~~
 
+The first few times I compiled this code with MinGW g++ 9.2 with optimization option `-O3`, without asking for averaging, I got timings where most were exactly 0, and the rest, just a few ones, were very close to 1/64ᵗʰ of a second, 0.015625 seconds. That indicated that the timer that this compiler’s `<chrono>` offers, has just 6 bits resolution (though it *reports* the time in much more fine grained units). However, when I now sat down to write this up I compiled again, and lo and behold, the results are now instead all very close to multiples of 0.01:
+
+~~~txt
+[X:\source\sorting_singly_linked]
+> a
+0.000981 seconds per shuffle.
+Array-shuffled 58112 words:
+ruction, phosphate, roosts, charles, towelling, ..., toys, chase, pincered, stepwise, recognised.
+
+[X:\source\sorting_singly_linked]
+> for /L %x in (1,1,11) do @(a>nul)
+0.001998 seconds per shuffle.
+0.001997 seconds per shuffle.
+0.001999 seconds per shuffle.
+0.000999 seconds per shuffle.
+0.002025 seconds per shuffle.
+0.001999 seconds per shuffle.
+0.003017 seconds per shuffle.
+0.002 seconds per shuffle.
+0.002203 seconds per shuffle.
+0.001999 seconds per shuffle.
+0.002996 seconds per shuffle.
+~~~
+
+Evidently the timer it now used had resolution of 1 millisecond, but somehow the reported result is adjusted to deviate just a little from an exact multiple of 0.001. It’s all very perplexing and mysterious. Timer resolutions just shouldn’t change, but one must accept reality. I can think of possible explanations like maybe my Sony wireless headphones driver interfered, or maybe there was a silent background update of Windows. Or, who knows, really.
+
+Anyway this is an example where the code to be timed is too fast to be measured with the available low resolution timer, namely `Timer_clock` defined as
+
+~~~cpp
+using Timer_clock = std::conditional_t<std::chrono::high_resolution_clock::is_steady,
+    std::chrono::high_resolution_clock,
+    std::chrono::steady_clock
+    >;
+~~~
+
+After asking for averaging of 1000 shuffles, via option `-D USE_AVERAGE`:
+
+~~~txt
+0.00171683 seconds per shuffle.
+Array-shuffled 58112 words:
+reagents, wing, consists, bountiful, mordant, ..., hatefully, quarrying, apis, waterways, cantatas.
+
+[X:\source\sorting_singly_linked]
+> for /L %x in (1,1,11) do @(a>nul)
+0.0017254 seconds per shuffle.
+0.00175082 seconds per shuffle.
+0.00174088 seconds per shuffle.
+0.00170986 seconds per shuffle.
+0.00175898 seconds per shuffle.
+0.00173709 seconds per shuffle.
+0.00187743 seconds per shuffle.
+0.00195252 seconds per shuffle.
+0.00174404 seconds per shuffle.
+0.00198402 seconds per shuffle.
+0.00174694 seconds per shuffle.
+~~~
+
+In contrast, the timer used by Visual C++ 2019 (here invoked with optimization option `/O2`) appears to have high enough resolution to measure single shuffles:
+
+~~~txt
+0.0020561 seconds per shuffle.
+Array-shuffled 58112 words:
+curiosity, others, nightmarish, detachments, accept, ..., hitchhiked, jots, parsec, arbiters, plumbago.
+
+[X:\source\sorting_singly_linked]
+> for /L %x in (1,1,11) do @(b>nul)
+0.0020144 seconds per shuffle.
+0.0022796 seconds per shuffle.
+0.0020431 seconds per shuffle.
+0.002024 seconds per shuffle.
+0.0037843 seconds per shuffle.
+0.0022624 seconds per shuffle.
+0.0020283 seconds per shuffle.
+0.0021941 seconds per shuffle.
+0.0019942 seconds per shuffle.
+0.0022344 seconds per shuffle.
+0.0021085 seconds per shuffle.
+~~~
+
+It looks like MinGW g++ optimizes this slightly better than Visual C++, with roughly 0.0017 seconds per shuffle versus roughly 0.0021 seconds.
+
+Compared to the roughly 0.012 seconds for the linked list merge shuffle with g++, the 0.0017 seconds array shuffle is roughly 7.06 times faster. However, keep in mind that these numbers are just one arbitrary real example. The main point is that not only in theoretical big Oh behavior but also in practice for a not minimal data set, arrays win handily over linked lists, with shorter and faster code for arrays plus, arrays have standard library support for this task via `std::shuffle`.
 
 asd
 ------
