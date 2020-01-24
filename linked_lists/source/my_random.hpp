@@ -8,13 +8,13 @@
 #include <type_traits>      // std::(conditional_t, is_same_v, is_unsigned_v)
 #include <utility>          // std::exchange
     
-#ifndef __GNUC__
-    #ifndef NO_WARNING_ABOUT_RANDOM_DEVICE_PLEASE
-    #   ifndef  _GLIBCXX_USE_RANDOM_TR1
-    #           pragma GCC warning \
+#ifdef __GNUC__
+#   ifndef NO_WARNING_ABOUT_RANDOM_DEVICE_PLEASE
+#       ifndef  _GLIBCXX_USE_RANDOM_TR1
+#           pragma GCC warning \
 "_GLIBCXX_USE_RANDOM_TR1 is not defined: `std::random_device` may use a fixed sequence."
-    #   endif
-    #endif
+#       endif
+#   endif
 #endif
 #include <random>           // std::*
 
@@ -149,6 +149,14 @@ namespace my_random {
         {}
     };
 
+    template< class Integer = int >
+    struct Integer_
+    {
+        static auto from( Generator& g, const Integer n_unique_values )
+            -> Integer
+        { return std::uniform_int_distribution<Integer>( 0, n_unique_values - 1 )( g ); }
+    };
+
     template< class Number >        // For floating point numbers, e.g. `double`.
     class Numbers_
     {
@@ -171,7 +179,17 @@ namespace my_random {
         {}
     };
 
+    template< class Number >
+    struct Number_
+    {
+        static auto from( Generator& g )
+            -> Number
+        { return std::uniform_real_distribution<Number>()( g ); }
+    };
+
     using Integers  = Integers_<int>;
+    using Integer   = Integer_<int>;
     using Numbers   = Numbers_<double>;
+    using Number    = Number_<double>;
 
 }  // namespace my_random

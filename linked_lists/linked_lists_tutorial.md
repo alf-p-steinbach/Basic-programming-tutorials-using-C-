@@ -1902,9 +1902,9 @@ That worked, yay!
 
 Modern C++ code should use the facilities of the C++11 `<random>` header, and not the old C `rand` and `srand` functions. The old functions are likely to generate value sequences that are far from ideally random, and if I used them here I would be teaching you Bad Habits™. Unfortunately direct use of the modern and more solid computer science based `<random>` header facilities is very much less convenient, and more verbose, than using the old functions.
 
-I therefore placed a set of more convenient wrappers in [header `"my_random.hpp"`](source/my_random.hpp). For the shuffling we’ll use the class `my_random::Choices` whose `.next()` method produces a pseudo-random `bool` value. The header also provides `my_random::Integers` and `my_random::Numbers`, where the latter produces floating point numbers in range 0 through 1.
+I therefore placed a set of more convenient wrappers in [a header `"my_random.hpp"`](source/my_random.hpp). For the shuffling we’ll use the class `my_random::Choices` whose `.next()` method produces a pseudo-random `bool` value. The header also provides `my_random::Integers` and `my_random::Numbers`, where the latter produces floating point numbers in range 0 through 1.
 
-When the data to be shuffled is all in main memory, as our words are, then for simplicity shuffling of a list can be expressed as a recursive function, one that after distributing the words about equally to 2 parts lists calls itself to randomize those lists, and after that randomly merges the now randomly ordered part lists. With *n* words and 2 part lists the recursion depth is roughly log₂(*n*) = log(*n*)/log(2), which for *n* = 58112 is ‭≈15.8, which rounded up is 16. This means that the call chain is far too short to cause stack overflow UB, so that a simple recursive implementation is OK.
+When the data to be shuffled is all in main memory, as our 58 000+ words are, then for simplicity shuffling of a list can be expressed as a recursive function, one that after distributing the words about equally to 2 parts lists calls itself to randomize those lists, and after that randomly merges the now randomly ordered part lists. With *n* words and 2 part lists the recursion depth is roughly log₂(*n*) = log(*n*)/log(2), which for *n* = 58112 is ‭≈15.8, which rounded up is 16. This means that the call chain is far too short to cause stack overflow UB, so that a simple recursive implementation is OK.
 
 [*<small>sorting_singly_linked/merge_shuffle.hpp</small>*](source/sorting_singly_linked/merge_shuffle.hpp)
 ~~~cpp
@@ -2026,7 +2026,7 @@ Merge-shuffled 58112 words:
 usurer, undisguised, hosepipe, reasonless, fouled, ..., hawaii, droving, cathartic, accesses, stuffiness.
 ~~~
 
-The measured time of some code can vary from one run of the program to the next, and it can be so short that it’s difficult to measure accurately using the old `clock` function (especially in Windows, where it has very low resolution). So usually one should put the code to measure in a simple loop that executes it thousands of times, measure the total elapsed time and divide by the number of executions. But happily that’s not necessary for this code and dataset on my old laptop.
+The measured time of some code can vary from one run of the program to the next, and it can be so short that it’s difficult to measure accurately using the old `clock` function (especially in Windows, where it has very low resolution). So usually one should put the code to measure in a simple loop that executes it thousands of times, measure the total elapsed time and divide by the number of executions. But happily the above result shows that that’s not necessary for this code and dataset on my old laptop.
 
 Still it doesn’t hurt to check if e.g. 11 consecutive runs produce similar times:
 
@@ -2046,7 +2046,9 @@ Still it doesn’t hurt to check if e.g. 11 consecutive runs produce similar tim
 0.011971 seconds.
 ~~~
 
-Apparently in Windows slow runs like the first two here occur randomly, at the whim of Windows, maybe influenced by the momentary phase of the moon.
+
+---
+
 
 
 asd
