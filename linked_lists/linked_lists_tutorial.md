@@ -1662,7 +1662,7 @@ namespace data {
     inline void for_each_english_word( const Func& f )
     {
         const string_view&  s           = english_words;
-        const int           s_length    = s.length();
+        const int           s_length    = int( s.length() );
 
         int i_wordstart = 0;
         while( i_wordstart < s_length ) {
@@ -1879,7 +1879,7 @@ auto main()
     -> int
 {
     List words = english_words_list();
-    const int n = words.count();
+    const int n = int( words.count() );
     
     cout << n << " words:" << endl;
     int i = 0;
@@ -2002,7 +2002,7 @@ auto main()
     -> int
 {
     List words = english_words_list();
-    const int n = words.count();
+    const int n = int( words.count() );
     
     const Time_point start_time = Timer_clock::now();
     const int seq_nr = 42;
@@ -2060,6 +2060,11 @@ Still it doesn’t hurt to check if e.g. 11 consecutive runs produce similar tim
 They do, OK.
 
 ---
+
+Since a reasonable array shuffle is O(*n*) linear time, plus does less for each value — just a copy or two, as opposed to the linked list adjustment of several pointers — I expected an array shuffle to be *at least* 16 times faster for this data set. However, it turned out to be just slightly more than 7 times faster. This serves to show that intuition can easily go wrong, at least in the details, about performance issues. One possible way to find out about why it’s not way faster is to **profile** the code, using a tool that measures how much time is spent in each relevant part. I don’t do that here; I just note that 7+ times faster shuffling, for array instead of linked list, is not insignificant. 
+
+The simple idea of O(*n*) array shuffling, known as the [Fisher-Yates shuffle](https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle), is to swap the first item of the array with a random other item or itself. Then do the same with the rest of the array regarded as a full array. The “or itself” ensures that each item has an equal chance of ending up in any particular place.
+
 
 
 

@@ -67,7 +67,7 @@ namespace my_random {
 
         // Not using std::independent_bits_engine because it copies the underlying engine.
         Bits_value value = 0;
-        constexpr int n_chunks = div_up( sizeof( Bits_value ), sizeof( unsigned ) );
+        constexpr int n_chunks = int( div_up( sizeof( Bits_value ), sizeof( unsigned ) ) );
         static_assert( n_chunks >= 1 );
         for( int i = 1; true; ++i ) {
             value |= hardware_entropy();

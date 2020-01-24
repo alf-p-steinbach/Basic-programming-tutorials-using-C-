@@ -1,9 +1,10 @@
 ﻿#include "../data/english_words_iteration.hpp"
+using data::for_each_english_word;
+
 #include "../my_chrono.hpp"
 #include "../my_random.hpp"
-using data::for_each_english_word;
-using my_random::Seed, my_random::random_seed;
 using my_chrono::Timer_clock, my_chrono::Time_point, my_chrono::as_seconds;
+using my_random::Seed, my_random::random_seed;
 
 #include <stddef.h>         // ptrdiff_t
 using Size = ptrdiff_t;
@@ -19,7 +20,7 @@ auto english_words_vector()
     -> vector<string_view>
 {
     vector<string_view> words;
-    for_each_english_word( [&]( const string_view& w ) { words.push_back( w ); } );
+    for_each_english_word( [&]( const string_view& w ){ words.push_back( w ); } );
     return words;
 }
 
@@ -28,9 +29,9 @@ void array_shuffle( vector<string_view>& words, const Seed a_seed = random_seed(
     my_random::Generator g( a_seed.value() );
     const Size max_index = words.size() - 1;
     for( Index i = 0; i < max_index - 1; ++i ) {
-        const Size n_originals = words.size() - i;
-        const Index rpos_other = my_random::Integer_<Index>::from( g, n_originals );
-        const Index i_other = max_index - rpos_other;
+        const Size      n_left      = words.size() - i;
+        const Index     rpos_other  = my_random::Integer_<Index>::from( g, n_left );
+        const Index     i_other     = max_index - rpos_other;
         if( i != i_other ) {
             swap( words[i], words[i_other] );
         }
@@ -41,7 +42,7 @@ auto main()
     -> int
 {
     vector<string_view> words = english_words_vector();
-    const int n = words.size();
+    const int n = int( words.size() );
     
     #ifdef USE_AVERAGE
         const int n_iterations = 1'000;
@@ -57,7 +58,7 @@ auto main()
     const Time_point end_time = Timer_clock::now();
     const double n_seconds = as_seconds( end_time - start_time )/n_iterations;
 
-    clog << n_seconds << " seconds." << endl;
+    clog << n_seconds << " seconds per shuffle." << endl;
     cout << "Array-shuffled " << n << " words:" << endl;
     for( int i = 0; i < n; ++i ) {
         if( i < 5 or n - 5 <= i ) {

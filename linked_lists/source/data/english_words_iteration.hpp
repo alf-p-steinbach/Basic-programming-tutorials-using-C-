@@ -9,7 +9,7 @@ namespace data {
     inline void for_each_english_word( const Func& f )
     {
         const string_view&  s           = english_words;
-        const int           s_length    = s.length();
+        const int           s_length    = int( s.length() );
 
         int i_wordstart = 0;
         while( i_wordstart < s_length ) {

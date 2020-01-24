@@ -13,7 +13,7 @@ auto main()
     -> int
 {
     List words = english_words_list();
-    const int n = words.count();
+    const int n = int( words.count() );
     
     const Time_point start_time = Timer_clock::now();
     const int seq_nr = 42;

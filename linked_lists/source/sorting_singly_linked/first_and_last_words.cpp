@@ -9,7 +9,7 @@ auto main()
     -> int
 {
     List words = english_words_list();
-    const int n = words.count();
+    const int n = int( words.count() );
     
     cout << n << " words:" << endl;
     int i = 0;
