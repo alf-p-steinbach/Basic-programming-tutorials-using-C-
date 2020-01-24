@@ -1858,7 +1858,8 @@ Finally, we should better test (not rigorously, but just, test) that this code w
 [*<small>sorting_singly_linked/first_and_last_words.cpp</small>*](source/sorting_singly_linked/first_and_last_words.cpp)
 ~~~cpp
 #include "english_words_list.hpp"
-namespace e = oneway_sorting_examples;
+namespace x = oneway_sorting_examples;
+using x::Node, x::List, x::english_words_list;
 
 #include <iostream>
 using std::cout, std::endl;
@@ -1866,12 +1867,12 @@ using std::cout, std::endl;
 auto main()
     -> int
 {
-    e::List words = e::english_words_list();
+    List words = english_words_list();
     const int n = words.count();
     
     cout << n << " words:" << endl;
     int i = 0;
-    for( e::Node* p = words.head; p != nullptr; p = p->next ) {
+    for( Node* p = words.head; p != nullptr; p = p->next ) {
         if( i < 5 or n - 5 <= i ) {
             if( i > 0 ) {
                 cout << ", ";
