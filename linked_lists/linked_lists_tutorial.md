@@ -1988,12 +1988,14 @@ To measure elapsed time modern C++ code should use the C++11 `<chrono>` header, 
 [*<small>sorting_singly_linked/first_and_last_words.merge-shuffled.cpp</small>*](source/sorting_singly_linked/first_and_last_words.merge-shuffled.cpp)
 ~~~cpp
 #include "../my_chrono.hpp"
+#include "../my_random.hpp"
+using my_chrono::Timer_clock, my_chrono::Time_point, my_chrono::as_seconds;
+using my_random::Seed;
+
 #include "english_words_list.hpp"
 #include "merge_shuffle.hpp"
 namespace x = oneway_sorting_examples;
 using x::Node, x::List, x::english_words_list, x::merge_shuffle;
-using my_random::Seed;
-using my_chrono::Timer_clock, my_chrono::Time_point, my_chrono::as_seconds;
 
 #include <iostream>
 using std::cout, std::clog, std::endl;

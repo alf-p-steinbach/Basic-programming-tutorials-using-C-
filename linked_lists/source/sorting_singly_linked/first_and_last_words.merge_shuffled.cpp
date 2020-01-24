@@ -1,10 +1,12 @@
 ﻿#include "../my_chrono.hpp"
+#include "../my_random.hpp"
+using my_chrono::Timer_clock, my_chrono::Time_point, my_chrono::as_seconds;
+using my_random::Seed;
+
 #include "english_words_list.hpp"
 #include "merge_shuffle.hpp"
 namespace x = oneway_sorting_examples;
 using x::Node, x::List, x::english_words_list, x::merge_shuffle;
-using my_random::Seed;
-using my_chrono::Timer_clock, my_chrono::Time_point, my_chrono::as_seconds;
 
 #include <iostream>
 using std::cout, std::clog, std::endl;
