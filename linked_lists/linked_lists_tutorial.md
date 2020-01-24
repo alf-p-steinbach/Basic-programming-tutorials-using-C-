@@ -1607,7 +1607,7 @@ As exemplified by `std::sort` and `std::forward_list::sort`, Quicksort is the co
 
 For the examples we’ll use [the Corncob free list of English words](http://www.mieliestronk.com/wordlist.html) as data to sort.
 
-It has more than 58 000 word in a simple text file, one per line. One perhaps interesting C++ problem is how to `#include` that file as data for a string literal. Instead of anything clever I just copied and pasted the text into a literal in a header:
+It has more than 58 000 word in a simple text file, one per line. One perhaps interesting C++ problem is how to `#include` that file as data for a string literal. Instead of anything clever I just copied and pasted the text into a literal in a header, and that worked nicely with the MinGW g++ compiler, but for Visual C++ 2019 I had to re-express it a bit:
 
 [*<small>data/english_words.hpp</small>*](source/data/english_words.hpp)
 ~~~cpp
@@ -1619,14 +1619,25 @@ namespace data {
 
     // From the "Corncob" online dictionary,
     // <url: http://www.mieliestronk.com/wordlist.html>.
-    const auto& english_words_literal = R"(
-aardvark
-aardwolf
+    
+    // Originally expressed as a single long string literal for the MinGW g++ compiler.
+    // But now using an array of `char` to work around Visual C++ 2019 error
+    // C2026 “string too big, trailing characters truncated”. It can only handle
+    // literal pieces each of < 16380 bytes. And then for the resulting string literal
+    // there is Visual C++ 2019 fatal error C2019 “string exceeds 65535 bytes in length”.
+    // These übersilly limits are out of the 1980’s. Argh.
 
-    ⋮
+    inline extern const char english_words_literal[] =
+    {
+        '\n',
+        'a', 'a', 'r', 'd', 'v', 'a', 'r', 'k', '\n',
+        'a', 'a', 'r', 'd', 'w', 'o', 'l', 'f', '\n',
 
-zulus
-)";
+            ⋮
+
+        'z', 'u', 'l', 'u', 's', '\n',
+        '\0'
+    };
 
     // Two characters to ignore: '\n' at start and '\0' at end of the literal.
     constexpr auto english_words = string_view(

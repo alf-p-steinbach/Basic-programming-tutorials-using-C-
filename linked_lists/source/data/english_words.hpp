@@ -16,6 +16,7 @@ namespace data {
 
     inline extern const char english_words_literal[] =
     {
+        '\n',
         'a', 'a', 'r', 'd', 'v', 'a', 'r', 'k', '\n',
         'a', 'a', 'r', 'd', 'w', 'o', 'l', 'f', '\n',
         'a', 'a', 'r', 'o', 'n', '\n',
