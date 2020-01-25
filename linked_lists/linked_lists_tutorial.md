@@ -2238,7 +2238,7 @@ using Timer_clock = std::conditional_t<std::chrono::high_resolution_clock::is_st
     >;
 ~~~
 
-After asking for averaging of 1000 shuffles, via option `-D USE_AVERAGE` more believable numbers emerge:
+After asking for averaging of 1000 shuffles via option `-D USE_AVERAGE`, more believable numbers emerge:
 
 ~~~txt
 0.00171683 seconds per shuffle.
