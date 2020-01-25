@@ -2227,7 +2227,7 @@ ruction, phosphate, roosts, charles, towelling, ..., toys, chase, pincered, step
 0.002996 seconds per shuffle.
 ~~~
 
-Evidently the timer it now used had resolution of 1 millisecond, but somehow the reported result is adjusted to deviate just a little from an exact multiple of 0.001. It’s all very perplexing and mysterious. Timer resolutions just shouldn’t change, but one must accept reality. I can think of possible explanations like maybe my Sony wireless headphones driver interfered, or maybe there was a silent background update of Windows. Or, who knows, really.
+Evidently the timer it now used had resolution of 1 millisecond, but somehow the reported result is adjusted to deviate just a little, randomly, from an exact multiple of 0.001. It’s all very perplexing and mysterious. Timer resolutions just shouldn’t change, but one must accept reality. I can think of possible explanations like maybe my Sony wireless headphones driver interfered, or maybe there was a silent background update of Windows. Or, who knows, really.
 
 Anyway this is an example where the code to be timed is too fast to be measured with the available low resolution timer, namely `Timer_clock` which as shown earlier is defined as
 
