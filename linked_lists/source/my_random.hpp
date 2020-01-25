@@ -154,7 +154,7 @@ namespace my_random {
     {
         static auto from( Generator& g, const Integer n_unique_values )
             -> Integer
-        { return std::uniform_int_distribution<Integer>( 0, n_unique_values - 1 )( g ); }
+        { return uniform_int_distribution<Integer>( 0, n_unique_values - 1 )( g ); }
     };
 
     template< class Number >        // For floating point numbers, e.g. `double`.

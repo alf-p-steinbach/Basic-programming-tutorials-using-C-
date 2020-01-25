@@ -1916,6 +1916,61 @@ Modern C++ code should use the facilities of the C++11 `<random>` header, and no
 
 I therefore placed a set of more convenient wrappers in [a header `"my_random.hpp"`](source/my_random.hpp). For the shuffling we’ll use the class `my_random::Choices` whose `.next()` method produces a pseudo-random `bool` value. The header also provides `my_random::Integers` and `my_random::Numbers`, where the latter produces floating point numbers in range 0 to (but not including) 1.
 
+Particularly relevant definitions from [`"my_random.hpp"`](source/my_random.hpp) (these depend on some parts not shown):
+
+~~~cpp
+ namespace my_random {
+   // A more well-defined, more reliable alternative to std::default_random_engine.
+    using Generator     = conditional_t< system_is_64_bit_or_more,
+        std::mt19937_64,            // Efficient for 64-bit systems.
+        std::mt19937                // Efficient for 32-bit systems.
+        >;
+    using Bits_value    = Generator::result_type;
+
+    class Choices
+    {
+        Bits            m_bits;
+        Bits_value      m_value;
+        int             m_n_bits_consumed;
+    
+    public:
+        auto generator()
+            -> Generator&
+        { return m_bits.generator(); }
+
+        auto next()
+            -> bool
+        {
+            if( m_n_bits_consumed == bits_per_<Bits_value> ) {
+                m_value = m_bits.next();
+                m_n_bits_consumed = 0;
+            }
+            ++m_n_bits_consumed;
+            return !!(exchange( m_value, m_value/2 ) % 2);
+        }
+        
+        explicit Choices( const Seed seed = random_seed() ):
+            m_bits( seed ),
+            m_value( 0 ),
+            m_n_bits_consumed( bits_per_<Bits_value> )
+        {}
+    };
+
+    template< class Integer = int >
+    struct Integer_
+    {
+        static auto from( Generator& g, const Integer n_unique_values )
+            -> Integer
+        { return uniform_int_distribution<Integer>( 0, n_unique_values - 1 )( g ); }
+    };
+~~~
+
+The logic in class `Choices` is a possibly premature optimization I added because things seemed slow in a Windows console window. It turned out that what was slow was not invocations of the random generator but Windows’s creation of a new process of a little program. From a human perspective that should be instantaneous; it wasn’t.
+
+But while that probably needlessly added code complicates things it does no technical harm, so I left it in.
+
+---
+
 When the data to be shuffled is all in main memory, as our 58 000+ words are, then for simplicity shuffling of a list can be expressed as a recursive function, one that after distributing the words about equally to 2 parts lists calls itself to randomize those lists, and after that randomly merges the now randomly ordered part lists. With *n* words and 2 part lists the recursion depth is roughly log₂(*n*) = log(*n*)/log(2), which for *n* = 58112 is ‭≈15.8, which rounded up is 16. This means that the call chain is far too short to cause stack overflow UB, so that a simple recursive implementation is OK.
 
 [*<small>sorting_singly_linked/merge_shuffle.hpp</small>*](source/sorting_singly_linked/merge_shuffle.hpp)
@@ -2174,7 +2229,7 @@ ruction, phosphate, roosts, charles, towelling, ..., toys, chase, pincered, step
 
 Evidently the timer it now used had resolution of 1 millisecond, but somehow the reported result is adjusted to deviate just a little from an exact multiple of 0.001. It’s all very perplexing and mysterious. Timer resolutions just shouldn’t change, but one must accept reality. I can think of possible explanations like maybe my Sony wireless headphones driver interfered, or maybe there was a silent background update of Windows. Or, who knows, really.
 
-Anyway this is an example where the code to be timed is too fast to be measured with the available low resolution timer, namely `Timer_clock` defined as
+Anyway this is an example where the code to be timed is too fast to be measured with the available low resolution timer, namely `Timer_clock` which as shown earlier is defined as
 
 ~~~cpp
 using Timer_clock = std::conditional_t<std::chrono::high_resolution_clock::is_steady,
@@ -2183,7 +2238,7 @@ using Timer_clock = std::conditional_t<std::chrono::high_resolution_clock::is_st
     >;
 ~~~
 
-After asking for averaging of 1000 shuffles, via option `-D USE_AVERAGE`:
+After asking for averaging of 1000 shuffles, via option `-D USE_AVERAGE` more believable numbers emerge:
 
 ~~~txt
 0.00171683 seconds per shuffle.
@@ -2232,6 +2287,7 @@ Asking for averaging produced very similar numbers.
 So, it looks like MinGW g++ optimizes this slightly better than Visual C++, with roughly 0.0017 seconds per shuffle versus roughly 0.0022 seconds.
 
 Compared to the roughly 0.012 seconds for the linked list merge shuffle with g++, the 0.0017 seconds array shuffle is roughly 7.06 times faster. But keep in mind that these numbers are just one arbitrary real example. The main point is that not only in theoretical big Oh behavior but also in practice for a not minimal data set, arrays win handily over linked lists, with shorter and faster code for arrays plus, arrays have standard library support for this task via `std::shuffle`.
+
 
 asd
 ------
