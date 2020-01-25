@@ -1,4 +1,5 @@
-﻿#include "../data/english_words_iteration.hpp"
+﻿#pragma once
+#include "../data/english_words_iteration.hpp"
 #include "List.hpp"
 
 namespace oneway_sorting_examples {
