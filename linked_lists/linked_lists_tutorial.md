@@ -1965,7 +1965,7 @@ Particularly relevant definitions from [`"my_random.hpp"`](source/my_random.hpp)
     };
 ~~~
 
-The logic in class `Choices` is a possibly premature optimization I added because things seemed slow in a Windows console window. It turned out that what was slow was not invocations of the random generator but Windows’s creation of a new process of a little program. From a human perspective that should be instantaneous; it wasn’t.
+The logic in class `Choices` is a possibly premature optimization I added because things seemed slow in a Windows console window. It turned out that what was slow was not invocations of the random generator but Windows’ creation of a new process of a little program. From a human perspective that should be instantaneous; it wasn’t.
 
 But while that possibly needlessly added code complicates things it does no technical harm, so I left it in.
 
