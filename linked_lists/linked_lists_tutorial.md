@@ -2292,7 +2292,7 @@ Compared to the roughly 0.012 seconds for the linked list merge shuffle with g++
 
 The sorting examples will use a common function that produces a shuffled list:
 
-[*<small>sorting_singly_linked/first_and_last_words.from_function_shuffled_english_words_list.cpp</small>*](source/sorting_singly_linked/first_and_last_words.from_function_shuffled_english_words_list.cpp)
+[*<small>sorting_singly_linked/shuffled_english_words_list.cpp</small>*](source/sorting_singly_linked/shuffled_english_words_list.cpp)
 ~~~cpp
 #pragma once
 #include "../my_random.hpp"
