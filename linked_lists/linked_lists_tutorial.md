@@ -2147,7 +2147,7 @@ auto main()
 }
 ~~~
 
-The first few times I compiled this code with MinGW g++ 9.2 with optimization option `-O3`, without asking for averaging, I got timings where most were exactly 0, and the rest, just a few ones, were very close to 1/64ᵗʰ of a second, 0.015625 seconds. That indicated that the timer that this compiler’s `<chrono>` offers, has just 6 bits resolution of the fractional part of seconds (though it *reports* the time in much more fine grained units). However, when I now sat down to write this up I compiled again, and lo and behold, the results are now instead all very close to multiples of 0.01:
+The first few times I compiled this code with MinGW g++ 9.2 with optimization option `-O3`, without asking for averaging, I got timings where most were exactly 0, and the rest, just a few ones, were very close to 1/64ᵗʰ of a second, 0.015625 seconds. That indicated that the timer that this compiler’s `<chrono>` offers, has just 6 bits resolution of the fractional part of seconds (though it *reports* the time in much more fine grained units). However, when I now sat down to write this up I compiled again, and lo and behold, the results are now instead all very close to multiples of 0.001:
 
 ~~~txt
 [X:\source\sorting_singly_linked]
@@ -2230,7 +2230,7 @@ Asking for averaging produced very similar numbers.
 
 So, it looks like MinGW g++ optimizes this slightly better than Visual C++, with roughly 0.0017 seconds per shuffle versus roughly 0.0022 seconds.
 
-Compared to the roughly 0.012 seconds for the linked list merge shuffle with g++, the 0.0017 seconds array shuffle is roughly 7.06 times faster. However, keep in mind that these numbers are just one arbitrary real example. The main point is that not only in theoretical big Oh behavior but also in practice for a not minimal data set, arrays win handily over linked lists, with shorter and faster code for arrays plus, arrays have standard library support for this task via `std::shuffle`.
+Compared to the roughly 0.012 seconds for the linked list merge shuffle with g++, the 0.0017 seconds array shuffle is roughly 7.06 times faster. But keep in mind that these numbers are just one arbitrary real example. The main point is that not only in theoretical big Oh behavior but also in practice for a not minimal data set, arrays win handily over linked lists, with shorter and faster code for arrays plus, arrays have standard library support for this task via `std::shuffle`.
 
 asd
 ------
