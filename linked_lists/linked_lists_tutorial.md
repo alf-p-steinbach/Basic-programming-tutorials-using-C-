@@ -1967,7 +1967,7 @@ Particularly relevant definitions from [`"my_random.hpp"`](source/my_random.hpp)
 
 The logic in class `Choices` is a possibly premature optimization I added because things seemed slow in a Windows console window. It turned out that what was slow was not invocations of the random generator but Windows’s creation of a new process of a little program. From a human perspective that should be instantaneous; it wasn’t.
 
-But while that probably needlessly added code complicates things it does no technical harm, so I left it in.
+But while that possibly needlessly added code complicates things it does no technical harm, so I left it in.
 
 ---
 
@@ -2288,6 +2288,37 @@ So, it looks like MinGW g++ optimizes this slightly better than Visual C++, with
 
 Compared to the roughly 0.012 seconds for the linked list merge shuffle with g++, the 0.0017 seconds array shuffle is roughly 7.06 times faster. But keep in mind that these numbers are just one arbitrary real example. The main point is that not only in theoretical big Oh behavior but also in practice for a not minimal data set, arrays win handily over linked lists, with shorter and faster code for arrays plus, arrays have standard library support for this task via `std::shuffle`.
 
+---
+
+The sorting examples will use a common function that produces a shuffled list:
+
+[*<small>sorting_singly_linked/first_and_last_words.from_function_shuffled_english_words_list.cpp</small>*](source/sorting_singly_linked/first_and_last_words.from_function_shuffled_english_words_list.cpp)
+~~~cpp
+#pragma once
+#include "../my_random.hpp"
+
+#include "english_words_list.hpp"
+#include "merge_shuffle.hpp"
+
+namespace oneway_sorting_examples {
+    using my_random::Seed;
+    
+    inline auto shuffled_english_words_list( const Seed seq_nr = Seed( 42 ) )
+        -> List
+    {
+        List result = english_words_list();
+        merge_shuffle( result, seq_nr );
+        return result;
+    }
+
+}  // namespace oneway_sorting_examples
+~~~
+
+As already shown this function produces a list, based on pseudo-random sequence #42, beginning and ending with
+
+~~~txt
+usurer, undisguised, hosepipe, reasonless, fouled, ..., hawaii, droving, cathartic, accesses, stuffiness.
+~~~
 
 asd
 ------
