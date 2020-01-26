@@ -1,5 +1,6 @@
 ﻿#include "../data/english_words_iteration.hpp"
-using data::for_each_english_word;
+#include "../data/Abbreviated_list_displayer.hpp"
+using data::for_each_english_word, data::Abbreviated_list_displayer;
 
 #include "../my_chrono.hpp"
 #include "../my_random.hpp"
@@ -10,7 +11,7 @@ using my_random::Seed, my_random::random_seed;
 using Size = ptrdiff_t;
 using Index = Size;
 
-#include <iostream>
+#include <iostream>         // std::(cout, endl)
 #include <vector>           // std::vector
 #include <string_view>      // std::string_view
 #include <utility>          // std::swap
@@ -59,16 +60,7 @@ auto main()
 
     clog << n_seconds << " seconds per shuffle." << endl;
     cout << "Array-shuffled " << n << " words:" << endl;
-    for( int i = 0; i < n; ++i ) {
-        if( i < 5 or n - 5 <= i ) {
-            if( i > 0 ) {
-                cout << ", ";
-            };
-            if( i == n - 5 ) {
-                cout << "..., ";
-            }
-            cout << words[i];
-        }
-    }
+    Abbreviated_list_displayer displayer( cout, n );
+    for( const string_view& word: words ) { displayer.display( word ); }
     cout << "." << endl;
 }

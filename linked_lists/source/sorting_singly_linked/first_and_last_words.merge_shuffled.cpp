@@ -3,6 +3,9 @@
 using my_chrono::Timer_clock, my_chrono::Time_point, my_chrono::as_seconds;
 using my_random::Seed;
 
+#include "../data/Abbreviated_list_displayer.hpp"
+using data::Abbreviated_list_displayer;
+
 #include "english_words_list.hpp"
 #include "merge_shuffle.hpp"
 namespace x = oneway_sorting_examples;
@@ -25,18 +28,9 @@ auto main()
 
     clog << n_seconds << " seconds." << endl;
     cout << "Merge-shuffled " << n << " words:" << endl;
-    int i = 0;
+    Abbreviated_list_displayer displayer( cout, n );
     for( Node* p = words.head; p != nullptr; p = p->next ) {
-        if( i < 5 or n - 5 <= i ) {
-            if( i > 0 ) {
-                cout << ", ";
-            };
-            if( i == n - 5 ) {
-                cout << "..., ";
-            }
-            cout << p-> value;
-        }
-        ++i;
+        displayer.display( p->value );
     }
     cout << "." << endl;
 }

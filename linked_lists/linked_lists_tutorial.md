@@ -1682,6 +1682,82 @@ namespace data {
 }  // namespace data
 ~~~
 
+As an example usage, the following program displays the five first and last words.
+
+Because several more example programs need to display an abbreviated list, I factored that logic out in a separate header:
+
+[*<small>data/Abbreviated_list_displayer.hpp</small>*](source/data/Abbreviated_list_displayer.hpp)
+~~~cpp
+#pragma once
+#include <ostream>          // std::ostream
+#include <string_view>      // std::string_view
+
+namespace oneway_sorting_examples {
+    using std::ostream, std::string_view;
+
+    class Abbreviated_list_displayer    // Non-copyable
+    {
+        ostream&        m_stream;
+        int             m_n_items;
+        int             m_index;
+
+    public:
+        inline void display( const string_view& item )
+        {
+            if( m_index < 5 or m_n_items - 5 <= m_index ) {
+                if( m_index > 0 ) {
+                    m_stream << ", ";
+                }
+                if( m_index == m_n_items - 5 ) {
+                    m_stream << "..., ";
+                }
+                m_stream << item;
+            }
+            ++m_index;
+        }
+        
+        Abbreviated_list_displayer( ostream& stream, const int n_items ):
+            m_stream( stream ),
+            m_n_items( n_items ),
+            m_index( 0 )
+        {}
+    };
+}  // namespace oneway_sorting_examples
+~~~
+
+[*<small>data/first_and_last_5_words.cpp</small>*](source/data/first_and_last_5_words.cpp)
+~~~cpp
+#include "english_words_iteration.hpp"
+#include "Abbreviated_list_displayer.hpp"
+using data::Abbreviated_list_displayer, data::for_each_english_word;
+
+#include <iostream>         // std::(cout, endl)
+#include <functional>       // std::invoke
+using std::cout, std::endl, std::invoke;
+
+auto main()
+    -> int
+{
+    const int n = invoke( []() -> int
+    {
+        int count = 0;
+        for_each_english_word( [&](auto) { ++count; } );
+        return count;
+    } );
+    
+    cout << n << " words:" << endl;
+    Abbreviated_list_displayer displayer( cout, n );
+    for_each_english_word( [&](auto word){ displayer.display( word ); } );
+    cout << "." << endl;
+}
+~~~
+
+Output:
+
+~~~txt
+58112 words:
+aardvark, aardwolf, aaron, aback, abacus, ..., zooms, zooplankton, zoos, zulu, zulus.
+~~~
 
 ### 4.2. `Node` and `List` classes, and an `english_words_list()` function.
 
@@ -1865,10 +1941,13 @@ namespace oneway_sorting_examples {
 }  // namespace oneway_sorting_examples
 ~~~
 
-Finally, we should better test (not rigorously, but just, test) that this code works as intended, producing the data that we intend to randomize and then sort:
+Finally, we should better test (not rigorously, but just, test) that this code works as intended, producing the data that we intend to randomize and then sort.
 
 [*<small>sorting_singly_linked/first_and_last_words.cpp</small>*](source/sorting_singly_linked/first_and_last_words.cpp)
 ~~~cpp
+#include "../data/Abbreviated_list_displayer.hpp"
+using data::Abbreviated_list_displayer;
+
 #include "english_words_list.hpp"
 namespace x = oneway_sorting_examples;
 using x::Node, x::List, x::english_words_list;
@@ -1883,24 +1962,15 @@ auto main()
     const int n = int( words.count() );
     
     cout << n << " words:" << endl;
-    int i = 0;
+    Abbreviated_list_displayer displayer( cout, n );
     for( Node* p = words.head; p != nullptr; p = p->next ) {
-        if( i < 5 or n - 5 <= i ) {
-            if( i > 0 ) {
-                cout << ", ";
-            }
-            if( i == n - 5 ) {
-                cout << "..., ";
-            }
-            cout << p-> value;
-        }
-        ++i;
+        displayer.display( p->value );
     }
     cout << "." << endl;
 }
 ~~~
 
-Output:
+Output, as before (but now with the data coming from a linked list):
 
 ~~~cpp
 58112 words:
@@ -1919,13 +1989,17 @@ I therefore placed a set of more convenient wrappers in [a header `"my_random.hp
 Particularly relevant definitions from [`"my_random.hpp"`](source/my_random.hpp) (these depend on some parts not shown):
 
 ~~~cpp
- namespace my_random {
-   // A more well-defined, more reliable alternative to std::default_random_engine.
+namespace my_random {
+        ⋮
+
+    // A more well-defined, more reliable alternative to std::default_random_engine.
     using Generator     = conditional_t< system_is_64_bit_or_more,
         std::mt19937_64,            // Efficient for 64-bit systems.
         std::mt19937                // Efficient for 32-bit systems.
         >;
     using Bits_value    = Generator::result_type;
+
+        ⋮
 
     class Choices
     {
@@ -2048,6 +2122,9 @@ To measure elapsed time modern C++ code should use the C++11 `<chrono>` header, 
 using my_chrono::Timer_clock, my_chrono::Time_point, my_chrono::as_seconds;
 using my_random::Seed;
 
+#include "../data/Abbreviated_list_displayer.hpp"
+using data::Abbreviated_list_displayer;
+
 #include "english_words_list.hpp"
 #include "merge_shuffle.hpp"
 namespace x = oneway_sorting_examples;
@@ -2070,32 +2147,23 @@ auto main()
 
     clog << n_seconds << " seconds." << endl;
     cout << "Merge-shuffled " << n << " words:" << endl;
-    int i = 0;
+    Abbreviated_list_displayer displayer( cout, n );
     for( Node* p = words.head; p != nullptr; p = p->next ) {
-        if( i < 5 or n - 5 <= i ) {
-            if( i > 0 ) {
-                cout << ", ";
-            };
-            if( i == n - 5 ) {
-                cout << "..., ";
-            }
-            cout << p-> value;
-        }
-        ++i;
+        displayer.display( p->value );
     }
     cout << "." << endl;
 }
 ~~~
 
-Result with MinGW g++ 9.2 in Windows 10, using optimization option `-O3`:
+One result with MinGW g++ 9.2 in Windows 10, using optimization option `-O3`:
 
 ~~~txt
-0.01499 seconds.
+0.012996 seconds.
 Merge-shuffled 58112 words:
 usurer, undisguised, hosepipe, reasonless, fouled, ..., hawaii, droving, cathartic, accesses, stuffiness.
 ~~~
 
-The measured time of some code can vary from one run of the program to the next, and it can be so short that it’s difficult to measure accurately using the old `clock` function (especially in Windows, where it has very low resolution), or even with modern `<chrono>` timing. So usually one should put the code to measure in a simple loop that executes it thousands of times, measure the total elapsed time and divide by the number of executions. But happily the above result shows that that’s not necessary for this particular code and dataset on my old laptop.
+The measured time of some code can vary from one run of the program to the next, and it can be so short that it’s difficult to measure accurately using the old `clock` function (especially in Windows, where it has very low resolution), or even as here with modern `<chrono>` timing. So usually one should put the code to measure in a simple loop that executes it thousands of times, measure the total elapsed time and divide by the number of executions. But happily the above result shows that that’s not necessary for this particular code and dataset on my old laptop.
 
 Still it doesn’t hurt to check if e.g. 11 consecutive runs produce similar times:
 
@@ -2128,7 +2196,8 @@ Instead of implementing array shuffling oneself, as in the code below, for profe
 [*<small>sorting_singly_linked/first_and_last_words.array_shuffled.cpp</small>*](source/sorting_singly_linked/first_and_last_words.array_shuffled.cpp)
 ~~~cpp
 #include "../data/english_words_iteration.hpp"
-using data::for_each_english_word;
+#include "../data/Abbreviated_list_displayer.hpp"
+using data::for_each_english_word, data::Abbreviated_list_displayer;
 
 #include "../my_chrono.hpp"
 #include "../my_random.hpp"
@@ -2139,7 +2208,7 @@ using my_random::Seed, my_random::random_seed;
 using Size = ptrdiff_t;
 using Index = Size;
 
-#include <iostream>
+#include <iostream>         // std::(cout, endl)
 #include <vector>           // std::vector
 #include <string_view>      // std::string_view
 #include <utility>          // std::swap
@@ -2188,17 +2257,8 @@ auto main()
 
     clog << n_seconds << " seconds per shuffle." << endl;
     cout << "Array-shuffled " << n << " words:" << endl;
-    for( int i = 0; i < n; ++i ) {
-        if( i < 5 or n - 5 <= i ) {
-            if( i > 0 ) {
-                cout << ", ";
-            };
-            if( i == n - 5 ) {
-                cout << "..., ";
-            }
-            cout << words[i];
-        }
-    }
+    Abbreviated_list_displayer displayer( cout, n );
+    for( const string_view& word: words ) { displayer.display( word ); }
     cout << "." << endl;
 }
 ~~~
