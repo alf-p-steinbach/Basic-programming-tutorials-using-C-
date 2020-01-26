@@ -118,11 +118,11 @@ The term **head** for the first node in a list is standard. A little less clear-
 
 ---
 
-In mathematics one can define a very similar concept in terms of functions. The crucial point of similarity is that one only has direct access to the front of a list, the first node in the list. One can just define a name for the empty list, e.g. nil, and a function that constructs a new list from a value *v* and an existing list *rest* (which can be nil), e.g. cons(*v*, *rest*). Getting at the head of a list is then easy by defining head(cons(*v*, *rest*)) = *v*. Getting the tail is also easy, math-wise: tail(cons(*v*, *rest*)) = *rest*.
+In mathematics one can define a very similar concept in terms of functions. The crucial point of similarity is that one only has direct access to the front of a list, the first node in the list. One can just define a name for the empty list, e.g. **nil**, and a function that constructs a new list from a value *v* and an existing list *rest* (which can be nil), e.g. **cons**(*v*, *rest*). Getting at the head of a list is then easy by defining **head**(**cons**(*v*, *rest*)) = *v*. Getting the tail is also easy, math-wise: **tail**(**cons**(*v*, *rest*)) = *rest*.
 
 Another math view of a linked list is as a simplest possible *directed graph* of *vertices* connected by *edges*.
 
-Programming languages that are based on math concepts like old Lisp (functional) and Prolog (logic programming), and like newer Haskell, Ocaml, Erlang etc., generally use the head/tail view of lists. And it can be worth also knowing about the terminology employed in Lisp. From the names of processor registers used in machine code level programming on the  IBM 704 computer, in the late 1950s, the *head* function is called `CAR`, short for “contents of the address register”, and the *tail* function is called `CDR`, short for “contents of the decrement register”. The *cons* function is just called `CONS`, short for “construct”.
+Programming languages that are based on math concepts like old Lisp (functional) and Prolog (logic programming), and like newer Haskell, Ocaml, Erlang etc., generally use the head/tail view of lists. And it can be worth also knowing about the terminology employed in Lisp. From the names of processor registers used in machine code level programming on the  IBM 704 computer, in the late 1950s, the **head** function is called **`CAR`**, short for “contents of the address register”, and the **tail** function is called **`CDR`**, short for “contents of the decrement register”. The **cons** function is just called **`CONS`**, short for “construct”.
 
 ## 2. Use of a singly linked list type, `std::forward_list`.
 
