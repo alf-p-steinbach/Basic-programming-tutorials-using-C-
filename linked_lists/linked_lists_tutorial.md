@@ -1702,7 +1702,7 @@ namespace oneway_sorting_examples {
         int             m_index;
 
     public:
-        inline void display( const string_view& item )
+        void display( const string_view& item )
         {
             if( m_index < 5 or m_n_items - 5 <= m_index ) {
                 if( m_index > 0 ) {
