@@ -118,7 +118,7 @@ The term **head** for the first node in a list is standard. A little less clear-
 
 ---
 
-In mathematics one can define a very similar concept in terms of functions. The crucial point of similarity is that one only has direct access to the front of a list, the first node in the list. One can just define a name for the empty list, e.g. *nil*, and a function that constructs a new list from a value *v* and an existing list *rest* (which can be *nil*), e.g. *cons*(*v*, *rest*). Getting at the head of a list is then easy by defining *head*(*cons*(*v*, *rest*)) = *v*. Getting the tail is also easy, math-wise: *tail*(*cons*(*v*, *rest*)) = *rest*.
+In mathematics one can define a very similar concept in terms of functions. The crucial point of similarity is that one only has direct access to the front of a list, the first node in the list. One can just define a name for the empty list, e.g. nil, and a function that constructs a new list from a value *v* and an existing list *rest* (which can be nil), e.g. cons(*v*, *rest*). Getting at the head of a list is then easy by defining head(cons(*v*, *rest*)) = *v*. Getting the tail is also easy, math-wise: tail(cons(*v*, *rest*)) = *rest*.
 
 Another math view of a linked list is as a simplest possible *directed graph* of *vertices* connected by *edges*.
 
