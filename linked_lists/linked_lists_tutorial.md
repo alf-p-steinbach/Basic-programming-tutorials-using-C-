@@ -122,7 +122,7 @@ In mathematics one can define a very similar concept in terms of functions. The 
 
 Another math view of a linked list is as a simplest possible *directed graph* of *vertices* connected by *edges*.
 
-Programming languages that are based on math concepts like old Lisp (functional) and Prolog (logic programming), and like newer Haskell, Ocaml etc., generally use the head/tail view of lists. And it can be worth also knowing about the terminology employed in Lisp. From the names of processor registers used in machine code level programming on the  IBM 704 computer, in the late 1950s, the *head* function is called `CAR`, short for “contents of the address register”, and the *tail* function is called `CDR`, short for “contents of the decrement register”. The *cons* function is just called `CONS`, short for “construct”.
+Programming languages that are based on math concepts like old Lisp (functional) and Prolog (logic programming), and like newer Haskell, Ocaml, Erlang etc., generally use the head/tail view of lists. And it can be worth also knowing about the terminology employed in Lisp. From the names of processor registers used in machine code level programming on the  IBM 704 computer, in the late 1950s, the *head* function is called `CAR`, short for “contents of the address register”, and the *tail* function is called `CDR`, short for “contents of the decrement register”. The *cons* function is just called `CONS`, short for “construct”.
 
 ## 2. Use of a singly linked list type, `std::forward_list`.
 
